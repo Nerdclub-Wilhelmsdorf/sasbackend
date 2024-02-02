@@ -22,6 +22,9 @@ type Account struct {
 func main() {
 	e := echo.New()
 	e.POST("/pay", pay)
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "0")
+	})
 	e.POST("/addAccount", addAccount)
 	e.Logger.Fatal(e.Start(":1323"))
 }
@@ -62,9 +65,8 @@ func pay(c echo.Context) error {
 			balance += amount
 			addDocUnsafe(map[string]string{"balance": strconv.Itoa(balance), "pin": res["pin"]}, paymentData.Acc2, "")
 			return c.String(http.StatusCreated, "success")
-			return c.String(http.StatusCreated, "wrong pin")
 		}
-		return c.String(http.StatusCreated, "Failed")
+		return c.String(http.StatusCreated, "wrong pin")
 	}
 	return c.String(http.StatusCreated, "Failed")
 }
