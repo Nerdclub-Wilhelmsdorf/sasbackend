@@ -19,6 +19,11 @@ type Account struct {
 	PIN string `json:"pin" xml:"pin" form:"pin" query:"pin"`
 }
 
+type Balance struct {
+	Acc1 string `json:"acc1" xml:"acc1" form:"acc1" query:"acc1"`
+	Pin  string `json:"pin" xml:"pin" form:"pin" query:"pin"`
+}
+
 func main() {
 	e := echo.New()
 	e.POST("/pay", pay)
@@ -26,6 +31,7 @@ func main() {
 		return c.String(http.StatusOK, "0")
 	})
 	e.POST("/addAccount", addAccount)
+	e.GET("/balanceCheck", balanceCheck)
 	e.Logger.Fatal(e.Start(":1323"))
 }
 
@@ -62,6 +68,7 @@ func pay(c echo.Context) error {
 			if err != nil {
 				return c.String(http.StatusCreated, "Server Error")
 			}
+
 			balance += amount
 			addDocUnsafe(map[string]string{"balance": strconv.Itoa(balance), "pin": res["pin"]}, paymentData.Acc2, "")
 			return c.String(http.StatusCreated, "success")
@@ -93,4 +100,23 @@ func addAccount(c echo.Context) error {
 		return c.String(http.StatusCreated, "couldnt add doc")
 	}
 	return c.String(http.StatusCreated, "success: "+adress)
+}
+
+func balanceCheck(c echo.Context) error {
+	balanceData := new(Balance)
+	if err := c.Bind(balanceData); err != nil {
+		return err
+	}
+	if hasDoc(balanceData.Acc1, "") {
+		res, err := readDocUnsafe(balanceData.Acc1, "")
+		if err != nil {
+			return c.String(http.StatusCreated, "Server Error")
+		}
+		if res["pin"] == balanceData.Pin {
+			return c.String(http.StatusCreated, res["balance"])
+		}
+		return c.String(http.StatusCreated, "wrong pin")
+	}
+	return c.String(http.StatusCreated, "Failed")
+
 }
