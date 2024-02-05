@@ -16,7 +16,8 @@ type Payment struct {
 	Acc2   string `json:"acc2" xml:"acc2" form:"acc2" query:"acc2"`
 }
 type Account struct {
-	PIN string `json:"pin" xml:"pin" form:"pin" query:"pin"`
+	PIN  string `json:"pin" xml:"pin" form:"pin" query:"pin"`
+	NAME string `json:"name" xml:"name" form:"name" query:"name"`
 }
 
 type Balance struct {
@@ -86,9 +87,13 @@ func addAccount(c echo.Context) error {
 	if len(accountData.PIN) != 4 {
 		return c.String(http.StatusCreated, "Bad Pin")
 	}
+	if len(accountData.NAME) < 3 {
+		return c.String(http.StatusCreated, "Bad Name")
+	}
 	acc := map[string]string{
 		"balance": "0",
 		"pin":     accountData.PIN,
+		"name":    accountData.NAME,
 	}
 	adress := randomstring.CookieFriendlyString(14)
 	if hasKey(adress, "") {
