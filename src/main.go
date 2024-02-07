@@ -47,31 +47,31 @@ func pay(c echo.Context) error {
 			return c.String(http.StatusCreated, "Server Error")
 		}
 		if res["pin"] == paymentData.Pin {
-			amount, err := strconv.Atoi(paymentData.Amount)
+			amount, err := strconv.ParseFloat(paymentData.Amount, 64)
 			if err != nil {
 				return c.String(http.StatusCreated, "Server Error")
 			}
-			balance, err := strconv.Atoi(res["balance"])
+			balance, err := strconv.ParseFloat(res["balance"], 64)
 			if err != nil {
 				return c.String(http.StatusCreated, "Server Error")
 			}
-			if balance >= amount {
-				balance -= amount
+			if balance >= amount*1.1 {
+				balance -= amount * 1.1
 			} else {
 				return c.String(http.StatusCreated, "Not enough money")
 			}
-			addDocUnsafe(map[string]string{"balance": strconv.Itoa(balance), "pin": res["pin"]}, paymentData.Acc1, "")
+			addDocUnsafe(map[string]string{"balance": fmt.Sprintf("%f", balance), "pin": res["pin"]}, paymentData.Acc1, "")
 			res, err = readDocUnsafe(paymentData.Acc2, "")
 			if err != nil {
 				return c.String(http.StatusCreated, "Server Error")
 			}
-			balance, err = strconv.Atoi(res["balance"])
+			balance, err = strconv.ParseFloat(res["balance"], 64)
 			if err != nil {
 				return c.String(http.StatusCreated, "Server Error")
 			}
 
-			balance += amount
-			addDocUnsafe(map[string]string{"balance": strconv.Itoa(balance), "pin": res["pin"]}, paymentData.Acc2, "")
+			balance += amount * 1.1
+			addDocUnsafe(map[string]string{"balance": fmt.Sprintf("%f", balance), "pin": res["pin"]}, paymentData.Acc2, "")
 			return c.String(http.StatusCreated, "success")
 		}
 		return c.String(http.StatusCreated, "wrong pin")
@@ -104,6 +104,7 @@ func addAccount(c echo.Context) error {
 		fmt.Println(err)
 		return c.String(http.StatusCreated, "couldnt add doc")
 	}
+	createQr(adress)
 	return c.String(http.StatusCreated, "success: "+adress)
 }
 
