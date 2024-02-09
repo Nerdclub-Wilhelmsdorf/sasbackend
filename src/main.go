@@ -70,8 +70,14 @@ func pay(c echo.Context) error {
 				return c.String(http.StatusCreated, "Server Error")
 			}
 
-			balance += amount * 1.1
+			balance += amount
 			addDocUnsafe(map[string]string{"balance": fmt.Sprintf("%f", balance), "pin": res["pin"]}, paymentData.Acc2, "")
+			//add 10& to the bank
+			res, _ = readDocUnsafe("zentralbank", "")
+			balance, _ = strconv.ParseFloat(res["balance"], 64)
+			balance += amount * 0.1
+			addDocUnsafe(map[string]string{"balance": fmt.Sprintf("%f", balance), "pin": res["pin"]}, "zentralbank", "")
+
 			return c.String(http.StatusCreated, "success")
 		}
 		return c.String(http.StatusCreated, "wrong pin")
