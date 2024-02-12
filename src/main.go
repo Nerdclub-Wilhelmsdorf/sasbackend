@@ -46,7 +46,7 @@ func pay(c echo.Context) error {
 		if err != nil {
 			return c.String(http.StatusCreated, "Server Error")
 		}
-		if res["pin"] == paymentData.Pin {
+		if CheckPasswordHash(paymentData.Pin, res["pin"]) {
 			amount, err := strconv.ParseFloat(paymentData.Amount, 64)
 			if err != nil {
 				return c.String(http.StatusCreated, "Server Error")
@@ -77,7 +77,6 @@ func pay(c echo.Context) error {
 			balance, _ = strconv.ParseFloat(res["balance"], 64)
 			balance += amount * 0.1
 			addDocUnsafe(map[string]string{"balance": fmt.Sprintf("%f", balance), "pin": res["pin"]}, "zentralbank", "")
-
 			return c.String(http.StatusCreated, "success")
 		}
 		return c.String(http.StatusCreated, "wrong pin")
@@ -96,16 +95,20 @@ func addAccount(c echo.Context) error {
 	if len(accountData.NAME) < 3 {
 		return c.String(http.StatusCreated, "Bad Name")
 	}
+	pin_hash, err := HashPassword(accountData.PIN)
+	if err != nil {
+		return c.String(http.StatusCreated, "Server Error")
+	}
 	acc := map[string]string{
 		"balance": "0",
-		"pin":     accountData.PIN,
+		"pin":     pin_hash,
 		"name":    accountData.NAME,
 	}
 	adress := randomstring.CookieFriendlyString(14)
 	if hasKey(adress, "") {
 		return c.String(http.StatusCreated, "already exists")
 	}
-	err := addDocUnsafe(acc, adress, "")
+	err = addDocUnsafe(acc, adress, "")
 	if err != nil {
 		fmt.Println(err)
 		return c.String(http.StatusCreated, "couldnt add doc")
@@ -124,7 +127,7 @@ func balanceCheck(c echo.Context) error {
 		if err != nil {
 			return c.String(http.StatusCreated, "Server Error")
 		}
-		if res["pin"] == balanceData.Pin {
+		if CheckPasswordHash(balanceData.Pin, res["pin"]) {
 			return c.String(http.StatusCreated, res["balance"])
 		}
 		return c.String(http.StatusCreated, "wrong pin")
