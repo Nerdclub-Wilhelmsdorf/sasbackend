@@ -49,13 +49,13 @@ func balanceCheck(c echo.Context) error {
 	if hasDoc(balanceData.Acc1, "") {
 		res, err := readDocUnsafe(balanceData.Acc1, "")
 		if err != nil {
-			return c.String(http.StatusCreated, "Server Error")
+			return c.String(401, "Server Error")
 		}
 		if CheckPasswordHash(balanceData.Pin, res["pin"]) {
 			return c.String(http.StatusCreated, res["balance"])
 		}
-		return c.String(http.StatusCreated, "wrong pin")
+		return c.String(401, "wrong pin")
 	}
-	return c.String(http.StatusCreated, "Failed")
+	return c.String(401, "Failed")
 
 }
