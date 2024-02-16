@@ -14,7 +14,7 @@ func main() {
 		return c.String(http.StatusOK, "0")
 	})
 	e.POST("/addAccount", addAccount)
-	e.GET("/balanceCheck", balanceCheck)
+	e.POST("/balanceCheck", balanceCheck)
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
