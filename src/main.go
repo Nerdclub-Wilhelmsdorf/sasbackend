@@ -18,5 +18,6 @@ func main() {
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
+	e.Use(middleware.CORS())
 	e.Logger.Fatal(e.Start(":1323"))
 }
