@@ -19,5 +19,6 @@ func main() {
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 	}))
 	e.Use(middleware.CORS())
+	e.Use(middleware.Secure())
 	e.Logger.Fatal(e.Start(":1323"))
 }
