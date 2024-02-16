@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/xyproto/randomstring"
@@ -38,6 +39,13 @@ func addAccount(c echo.Context) error {
 		return c.String(http.StatusCreated, "couldnt add doc")
 	}
 	createQr(adress)
+	f, err := os.OpenFile("logfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		return c.String(http.StatusCreated, "Failed")
+	}
+	f.WriteString("Account Created: " + adress)
+	f.Close()
+
 	return c.String(http.StatusCreated, "success: "+adress)
 }
 
@@ -52,6 +60,12 @@ func balanceCheck(c echo.Context) error {
 			return c.String(401, "Server Error")
 		}
 		if CheckPasswordHash(balanceData.Pin, res["pin"]) {
+			f, err := os.OpenFile("logfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+				return c.String(http.StatusCreated, "Failed")
+			}
+			f.WriteString("Balance Checked: " + balanceData.Acc1)
+			f.Close()
 			return c.String(http.StatusCreated, res["balance"])
 		}
 		return c.String(401, "wrong pin")

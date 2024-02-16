@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -49,6 +50,12 @@ func pay(c echo.Context) error {
 			balance, _ = strconv.ParseFloat(res["balance"], 64)
 			balance += amount * 0.1
 			addDocUnsafe(map[string]string{"balance": fmt.Sprintf("%f", balance), "pin": res["pin"]}, "zentralbank", "")
+			f, err := os.OpenFile("logfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+			if err != nil {
+				return c.String(http.StatusCreated, "Failed")
+			}
+			f.WriteString(paymentData.Acc1 + " -> " + paymentData.Acc2 + ": " + paymentData.Amount + "D")
+			f.Close()
 			return c.String(http.StatusCreated, "success")
 		}
 		return c.String(http.StatusCreated, "wrong pin")
