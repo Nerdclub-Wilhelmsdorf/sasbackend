@@ -7,10 +7,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
 	e := echo.New()
+	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
+	e.Use(middleware.Recover())
 	e.POST("/pay", pay)
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "0")
