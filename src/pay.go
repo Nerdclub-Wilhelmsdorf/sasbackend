@@ -18,7 +18,7 @@ func pay(c echo.Context) error {
 		return err
 	}
 	if failedAttempts[paymentData.Acc1] > 3 {
-		return c.String(http.StatusNotAcceptable, "suspended")
+		return c.String(http.StatusCreated, "suspended")
 	}
 
 	if hasDoc(paymentData.Acc1, "") && hasDoc(paymentData.Acc2, "") {
@@ -61,7 +61,7 @@ func pay(c echo.Context) error {
 			if err != nil {
 				return c.String(http.StatusCreated, "Failed")
 			}
-			f.WriteString(paymentData.Acc1 + " -> " + paymentData.Acc2 + ": " + paymentData.Amount + "D")
+			f.WriteString(paymentData.Acc1 + " -> " + paymentData.Acc2 + ": " + paymentData.Amount + "D\n")
 			f.Close()
 			delete(failedAttempts, paymentData.Acc1)
 			return c.String(http.StatusCreated, "success")
@@ -73,6 +73,7 @@ func pay(c echo.Context) error {
 		failedAttempts[paymentData.Acc1] += 1
 		if failedAttempts[paymentData.Acc1] == 3 {
 			go resetTimer(paymentData.Acc1)
+			return c.String(http.StatusCreated, "suspended")
 		}
 		return c.String(http.StatusCreated, "wrong pin")
 	}

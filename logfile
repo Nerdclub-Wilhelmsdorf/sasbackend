@@ -6,3 +6,61 @@ method=POST, uri=/pay, status=201
 method=POST, uri=/pay, status=201
 method=POST, uri=/pay, status=201
 method=POST, uri=/pay, status=406
+method=GET, uri=/, status=200
+method=GET, uri=/favicon.ico, status=404
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=406
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=406
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+method=GET, uri=/, status=200
+method=GET, uri=/, status=200
+method=POST, uri=/pay, status=201
+Balance Checked: lenmethod=POST, uri=/balanceCheck, status=201
+Balance Checked: lenmethod=POST, uri=/balanceCheck, status=201
+Balance Checked: lenmethod=POST, uri=/balanceCheck, status=201
+Balance Checked: lenmethod=POST, uri=/balanceCheck, status=201
+Balance Checked: lenmethod=POST, uri=/balanceCheck, status=201
+method=POST, uri=/balanceCheck, status=401
+method=POST, uri=/balanceCheck, status=401
+method=POST, uri=/balanceCheck, status=201

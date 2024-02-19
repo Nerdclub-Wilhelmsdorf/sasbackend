@@ -54,6 +54,9 @@ func balanceCheck(c echo.Context) error {
 	if err := c.Bind(balanceData); err != nil {
 		return err
 	}
+	if failedAttempts[balanceData.Acc1] > 3 {
+		return c.String(http.StatusCreated, "suspended")
+	}
 	if hasDoc(balanceData.Acc1, "") {
 		res, err := readDocUnsafe(balanceData.Acc1, "")
 		if err != nil {
@@ -68,6 +71,16 @@ func balanceCheck(c echo.Context) error {
 			f.Close()
 			return c.String(http.StatusCreated, res["balance"])
 		}
+		_, ok := failedAttempts[balanceData.Acc1]
+		if !ok {
+			failedAttempts[balanceData.Acc1] = 1
+		}
+		failedAttempts[balanceData.Acc1] += 1
+		if failedAttempts[balanceData.Acc1] == 3 {
+			go resetTimer(balanceData.Acc1)
+			return c.String(http.StatusCreated, "suspended")
+		}
+
 		return c.String(401, "wrong pin")
 	}
 	return c.String(401, "Failed")
