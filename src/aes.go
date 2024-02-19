@@ -33,6 +33,7 @@ See https://crypto.stackexchange.com/questions/26783/ciphertext-and-tag-size-and
 an explanation of tag sizes.
 If larger the first 16 bytes are used.
 */
+
 func EncryptGCM(encKey, input []byte) ([]byte, error) {
 
 	encKeyLen := len(encKey)

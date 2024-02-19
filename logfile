@@ -1,0 +1,8 @@
+method=POST, uri=/pay, status=201
+method=POST, uri=/pay, status=201
+method=POST, uri=/pay, status=201
+method=POST, uri=/pay, status=201
+method=POST, uri=/pay, status=201
+method=POST, uri=/pay, status=201
+method=POST, uri=/pay, status=201
+method=POST, uri=/pay, status=406

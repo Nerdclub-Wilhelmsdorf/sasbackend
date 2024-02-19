@@ -5,15 +5,22 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
+
+var failedAttempts = make(map[string]int)
 
 func pay(c echo.Context) error {
 	paymentData := new(Payment)
 	if err := c.Bind(paymentData); err != nil {
 		return err
 	}
+	if failedAttempts[paymentData.Acc1] > 3 {
+		return c.String(http.StatusNotAcceptable, "suspended")
+	}
+
 	if hasDoc(paymentData.Acc1, "") && hasDoc(paymentData.Acc2, "") {
 		res, err := readDocUnsafe(paymentData.Acc1, "")
 		if err != nil {
@@ -56,9 +63,22 @@ func pay(c echo.Context) error {
 			}
 			f.WriteString(paymentData.Acc1 + " -> " + paymentData.Acc2 + ": " + paymentData.Amount + "D")
 			f.Close()
+			delete(failedAttempts, paymentData.Acc1)
 			return c.String(http.StatusCreated, "success")
+		}
+		_, ok := failedAttempts[paymentData.Acc1]
+		if !ok {
+			failedAttempts[paymentData.Acc1] = 1
+		}
+		failedAttempts[paymentData.Acc1] += 1
+		if failedAttempts[paymentData.Acc1] == 3 {
+			go resetTimer(paymentData.Acc1)
 		}
 		return c.String(http.StatusCreated, "wrong pin")
 	}
 	return c.String(http.StatusCreated, "Failed")
+}
+func resetTimer(acc string) {
+	time.Sleep(5 * time.Minute)
+	delete(failedAttempts, acc)
 }
