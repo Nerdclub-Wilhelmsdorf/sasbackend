@@ -43,7 +43,7 @@ func addAccount(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusCreated, "Failed")
 	}
-	f.WriteString("Account Created: " + adress)
+	f.WriteString("Account Created: " + adress + "\n")
 	f.Close()
 
 	return c.String(http.StatusCreated, "success: "+adress)
@@ -67,7 +67,7 @@ func balanceCheck(c echo.Context) error {
 			if err != nil {
 				return c.String(http.StatusCreated, "Failed")
 			}
-			f.WriteString("Balance Checked: " + balanceData.Acc1)
+			f.WriteString("Balance Checked: " + balanceData.Acc1 + "\n")
 			f.Close()
 			return c.String(http.StatusCreated, res["balance"])
 		}
