@@ -31,6 +31,10 @@ func main() {
 	}))
 	e.Use(middleware.CORS())
 	//e.Use(middleware.Secure())
+
+	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+		return key == "test", nil
+	}))
 	e.Logger.Fatal(e.StartAutoTLS(":443"))
 	//e.Logger.Fatal(e.Start(":1323"))
 }
