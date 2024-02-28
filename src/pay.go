@@ -26,6 +26,13 @@ func pay(c echo.Context) error {
 		if err != nil {
 			return c.String(http.StatusCreated, "Server Error")
 		}
+		if res["guest"] == "true" {
+			return c.String(http.StatusCreated, "guests cant recieve money")
+		}
+		res, err = readDocUnsafe(paymentData.Acc1, "")
+		if err != nil {
+			return c.String(http.StatusCreated, "Server Error")
+		}
 		if CheckPasswordHash(paymentData.Pin, res["pin"]) {
 			amount, err := strconv.ParseFloat(paymentData.Amount, 64)
 			if err != nil {
