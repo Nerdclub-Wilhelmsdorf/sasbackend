@@ -27,17 +27,19 @@ func addDocUnsafe(data map[string]string, name string, dir string) error {
 	if dir == "" {
 		_ = os.Mkdir("documents", os.ModePerm)
 		document, err = os.Create("documents/" + name + ".json")
+
 	} else {
 		_ = os.Mkdir("documents", os.ModePerm)
 		_ = os.Mkdir("documents/"+dir, os.ModePerm)
 		document, err = os.Create("documents/" + dir + "/" + name + ".json")
+
 	}
 	if err != nil {
-		document.Close()
 		return err
 	}
+	defer document.Close()
+
 	_, err = document.WriteString(toJSON)
-	document.Close()
 
 	if err != nil {
 		return err
@@ -72,6 +74,7 @@ func readKey(key string, dir string) string {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer file.Close()
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
 			log.Fatal(err)
@@ -81,7 +84,6 @@ func readKey(key string, dir string) string {
 		if err != nil {
 			fmt.Println(err)
 		}
-		file.Close()
 		return string(result)
 	}
 	return ""
@@ -99,8 +101,8 @@ func addKey(key string, value string, dir string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer newFile.Close()
 		log.Println(newFile)
-		newFile.Close()
 		err2 := ioutil.WriteFile(dir+"/"+key, []byte(ciphertext), 0666)
 		if err2 != nil {
 			log.Fatal(err2)
@@ -157,8 +159,8 @@ func addKeyUnsafe(key string, value string, dir string) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer newFile.Close()
 		log.Println(newFile)
-		newFile.Close()
 		err2 := ioutil.WriteFile(dir+"/"+key, []byte(value), 0666)
 		if err2 != nil {
 			log.Fatal(err2)
@@ -172,6 +174,7 @@ func readKeyUnsafe(key string, dir string) string {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer file.Close()
 		data, err := ioutil.ReadAll(file)
 		if err != nil {
 			log.Fatal(err)
@@ -180,7 +183,6 @@ func readKeyUnsafe(key string, dir string) string {
 		if err != nil {
 			fmt.Println(err)
 		}
-		file.Close()
 		return ret
 	}
 	return ""
