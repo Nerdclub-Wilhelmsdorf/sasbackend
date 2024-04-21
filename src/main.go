@@ -37,10 +37,12 @@ func main() {
 	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
 		return key == "test", nil
 	}))
+
 	if err := e.StartTLS(":8443", "fullchain.pem", "privkey.pem"); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
-	// e.Logger.Fatal(e.Start(":1213"))
+
+	//e.Logger.Fatal(e.Start(":1213"))
 }
 
 func pay(c echo.Context) error {
@@ -48,7 +50,7 @@ func pay(c echo.Context) error {
 	if err := c.Bind(paymentData); err != nil {
 		return err
 	}
-	err := transferMoney(("user:" + paymentData.Acc1), ("user:" + paymentData.Acc2), paymentData.Pin, paymentData.Amount)
+	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -76,6 +78,7 @@ func checkBalance(c echo.Context) error {
 	if err := c.Bind(balanceData); err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+	fmt.Println(balanceData.Acc1, balanceData.Pin)
 	balance, err := balanceCheck(BalanceCheck{ID: "user:" + balanceData.Acc1, Pin: balanceData.Pin})
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())

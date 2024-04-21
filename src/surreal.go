@@ -114,6 +114,7 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to parse transfer amount: %w", err)
 	}
 	balance, err := strconv.ParseFloat(acc1.Balance, 64)
+	fmt.Print("balance: " + acc1.Balance + " amount: " + transfer.Amount)
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func transferMoney(transfer Transfer) error {
 	if amount*1.1 >= balance {
 		return errors.New("insufficient funds")
 	}
-	changes := map[string]string{"balance": fmt.Sprintf("%f", balance-amount*1.1), "name": acc1.Name, "pin": acc1.Pin}
+	changes := map[string]string{"balance": fmt.Sprintf("%f", (balance - amount*1.1)), "name": acc1.Name, "pin": acc1.Pin}
 	if _, err = db.Update(transfer.From, changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.From, err)
 	}
@@ -136,7 +137,11 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	changes = map[string]string{"balance": fmt.Sprintf("%f", amount+balance), "name": acc2.Name, "pin": acc2.Pin}
+	balance, err = strconv.ParseFloat(acc2.Balance, 64)
+	if err != nil {
+		return err
+	}
+	changes = map[string]string{"balance": fmt.Sprintf("%f", (amount + balance)), "name": acc2.Name, "pin": acc2.Pin}
 	if _, err = db.Update(transfer.To, changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.To, err)
 	}
@@ -149,10 +154,7 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	changes = map[string]string{"balance": fmt.Sprintf("%f", amount*0.1+balance)}
-	if _, err = db.Change("user:zentralbank", changes); err != nil {
-		return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
-	}
+	changes = map[string]string{"balance": fmt.Sprintf("%f", amount*0.1+balance), "name": acc3.Name, "pin": acc3.Pin}
 	if _, err = db.Update("user:zentralbank", changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
 	}
@@ -169,7 +171,7 @@ func balanceCheck(account BalanceCheck) (string, error) {
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", fmt.Errorf("failed to use database: %w", err)
 	}
-
+	fmt.Print(account.ID)
 	data, err := db.Select(account.ID)
 	if err != nil {
 		return "", fmt.Errorf("failed to select account with ID %s: %w", account.ID, err)
