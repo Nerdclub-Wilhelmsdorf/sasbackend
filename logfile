@@ -1,0 +1,8 @@
+method=POST, uri=/addAccount, status=200
+method=POST, uri=/addAccount, status=200
+method=POST, uri=/addAccount, status=200
+method=GET, uri=/balanceCheck, status=405
+method=POST, uri=/balanceCheck, status=200
+method=POST, uri=/balanceCheck, status=500
+method=POST, uri=/balanceCheck, status=500
+method=POST, uri=/pay, status=500

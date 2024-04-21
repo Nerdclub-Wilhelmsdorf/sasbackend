@@ -16,7 +16,7 @@ func test() {
 		Balance: "1000",
 		Pin:     "1234",
 	}
-	err := createAccount(user)
+	_, err := createAccount(user)
 	if err != nil {
 		panic(err)
 	}
@@ -54,57 +54,39 @@ func test() {
 	fmt.Println("Balance:", balance)
 }
 
-type Account struct {
-	ID      string `json:"id,omitempty"`
-	Name    string `json:"name"`
-	Balance string `json:"balance"`
-	Pin     string `json:"pin"`
-}
-
-type Transfer struct {
-	From   string `json:"from"`
-	To     string `json:"to"`
-	Amount string `json:"amount"`
-	Pin    string `json:"pin"`
-}
-
-type BalanceCheck struct {
-	ID  string `json:"id"`
-	Pin string `json:"pin"`
-}
-
-func createAccount(user Account) error {
+func createAccount(user Account) (string, error) {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
 	if _, err := db.Use("user", "user"); err != nil {
-		return err
+		return "", err
 	}
+
 	// Insert user
 	data, err := db.Create("user", user)
 	if err != nil {
-		return err
+		return "", err
 	}
 	createdUser := make([]Account, 1)
 	err = surrealdb.Unmarshal(data, &createdUser)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Get user by ID
 	data, err = db.Select(createdUser[0].ID)
 	if err != nil {
-		return err
+		return "", err
 	}
 	selectedUser := new(Account)
 	err = surrealdb.Unmarshal(data, &selectedUser)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if user.Name == selectedUser.Name {
 		fmt.Println("User with ID: " + selectedUser.ID + " created successfully.")
-		return nil
+		return selectedUser.ID, nil
 	} else {
-		return errors.New("failed to create user")
+		return "", errors.New("failed to create user")
 	}
 
 }
@@ -141,10 +123,7 @@ func transferMoney(transfer Transfer) error {
 	if amount*1.1 >= balance {
 		return errors.New("insufficient funds")
 	}
-	changes := map[string]string{"balance": fmt.Sprintf("%f", balance-amount*1.1)}
-	if _, err = db.Change(transfer.From, changes); err != nil {
-		return err
-	}
+	changes := map[string]string{"balance": fmt.Sprintf("%f", balance-amount*1.1), "name": acc1.Name, "pin": acc1.Pin}
 	if _, err = db.Update(transfer.From, changes); err != nil {
 		return err
 	}
@@ -157,10 +136,7 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return err
 	}
-	changes = map[string]string{"balance": fmt.Sprintf("%f", amount+balance)}
-	if _, err = db.Change(transfer.To, changes); err != nil {
-		return err
-	}
+	changes = map[string]string{"balance": fmt.Sprintf("%f", amount+balance), "name": acc2.Name, "pin": acc2.Pin}
 	if _, err = db.Update(transfer.To, changes); err != nil {
 		return err
 	}
