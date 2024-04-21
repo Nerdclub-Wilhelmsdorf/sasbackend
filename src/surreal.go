@@ -140,7 +140,7 @@ func transferMoney(transfer Transfer) error {
 	if _, err = db.Update(transfer.To, changes); err != nil {
 		return err
 	}
-	data, err = db.Select("zentralbank")
+	data, err = db.Select("user:zentralbank")
 	if err != nil {
 		return err
 	}
@@ -150,10 +150,10 @@ func transferMoney(transfer Transfer) error {
 		return err
 	}
 	changes = map[string]string{"balance": fmt.Sprintf("%f", amount*0.1+balance)}
-	if _, err = db.Change("zentralbank", changes); err != nil {
+	if _, err = db.Change("user:zentralbank", changes); err != nil {
 		return err
 	}
-	if _, err = db.Update("zentralbank", changes); err != nil {
+	if _, err = db.Update("user:zentralbank", changes); err != nil {
 		return err
 	}
 
