@@ -48,7 +48,7 @@ func pay(c echo.Context) error {
 	if err := c.Bind(paymentData); err != nil {
 		return err
 	}
-	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
+	err := transferMoney(("user:" + paymentData.Acc1), ("user:" + paymentData.Acc2), paymentData.Pin, paymentData.Amount)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
