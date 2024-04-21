@@ -7,11 +7,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
 	e := echo.New()
+	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
+	e.Use(middleware.Recover())
 	e.POST("/pay", pay)
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "0")
@@ -27,8 +30,14 @@ func main() {
 		Format: "method=${method}, uri=${uri}, status=${status}\n",
 		Output: f,
 	}))
+	e.Use(middleware.CORS())
+	//e.Use(middleware.Secure())
 
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+		return key == "test", nil
+	}))
+	e.Logger.Fatal(e.StartAutoTLS(":8443"))
+	//e.Logger.Fatal(e.Start(":1213"))
 }
 
 func pay(c echo.Context) error {
