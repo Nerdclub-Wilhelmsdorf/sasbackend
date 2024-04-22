@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -20,6 +21,34 @@ type Account struct {
 }
 
 func main() {
+
+	fmt.Println("Welcome to the admin console")
+	fmt.Println("the following commands are available:")
+	fmt.Println("[1] create - create a new account")
+	fmt.Println("[2] delete - delete an account")
+	fmt.Println("[3] list - list all accounts")
+	fmt.Println("[4] changepin - change the pin of an account")
+	fmt.Println("[5] verify - verify an account")
+	fmt.Println("[0] exit - exit the program")
+	fmt.Println("Please enter the number of the command you would like to run:")
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	if scanner.Err() != nil {
+		fmt.Println(scanner.Err())
+	}
+
+	switch scanner := scanner; scanner.Text() {
+	case "1":
+		create()
+	case "2":
+		delete()
+	case "3":
+		listAll()
+	case "4":
+		changepin()
+	case "5":
+		verify()
+	}
 
 	argsWithoutProg := os.Args[1:]
 	arg := argsWithoutProg[0]
@@ -59,7 +88,11 @@ func create() {
 		fmt.Println(err)
 	} else {
 		fmt.Println("User created successfully with ID: " + id + " and Pin:" + user.Pin)
+		fmt.Println("\n")
+		main()
+
 	}
+
 }
 
 func createAccountStruct(user *Account, name string, balance string, id string, pin string) {
@@ -169,6 +202,8 @@ func listAll() {
 	// Print the JSON data
 	fmt.Println(string(jsonData))
 
+	fmt.Println("\n")
+	main()
 }
 
 func delete() {
@@ -186,6 +221,9 @@ func delete() {
 	} else {
 		fmt.Println("User with ID: " + id + " deleted successfully.")
 	}
+
+	fmt.Println("\n")
+	main()
 }
 
 /*
@@ -234,6 +272,9 @@ func changepin() {
 	if _, err = db.Update(selectedUser.ID, changes); err != nil {
 		panic(err)
 	}
+
+	fmt.Println("\n")
+	main()
 }
 
 func verify() {
@@ -262,6 +303,9 @@ func verify() {
 	} else {
 		fmt.Println("Error")
 	}
+
+	fmt.Println("\n")
+	main()
 }
 
 func CheckPasswordHash(password, hash string) bool {
