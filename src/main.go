@@ -5,11 +5,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/crypto/acme/autocert"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 	e.POST("/addAccount", addAccount)
 	e.POST("/balanceCheck", checkBalance)
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "method=${method}, uri=${uri}, status=${status}\n",
+		Format: currTime() + "method=${method}, uri=${uri}, status=${status}\n",
 		Output: f,
 	}))
 	e.Use(middleware.CORS())
@@ -45,47 +45,7 @@ func main() {
 	//e.Logger.Fatal(e.Start(":1213"))
 }
 
-func pay(c echo.Context) error {
-	paymentData := new(PaymentRoute)
-	if err := c.Bind(paymentData); err != nil {
-		return err
-	}
-	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	return c.String(http.StatusOK, "payment successful")
-}
-func addAccount(c echo.Context) error {
-	accountData := new(AccountRoute)
-	if err := c.Bind(accountData); err != nil {
-		return c.String(http.StatusInternalServerError, "Error getting data")
-	}
-	passrd, err := HashPassword(accountData.PIN)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, "Error hashing password")
-	}
-	accountCreationData := Account{Pin: passrd, Name: accountData.NAME, Balance: "0"}
-	id, err := createAccount(accountCreationData)
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	id = id[len("user:"):]
-	return c.String(http.StatusOK, id)
-}
-func checkBalance(c echo.Context) error {
-	balanceData := new(BalanceRoute)
-	if err := c.Bind(balanceData); err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	fmt.Println(balanceData.Acc1, balanceData.Pin)
-	balance, err := balanceCheck(BalanceCheck{ID: "user:" + balanceData.Acc1, Pin: balanceData.Pin})
-	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	return c.String(http.StatusOK, balance)
-}
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
+func currTime() string {
+	dt := time.Now()
+	return dt.Format("01-02-2006 15:04:05")
 }
