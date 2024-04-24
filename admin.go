@@ -48,6 +48,8 @@ func main() {
 		changepin()
 	case "5":
 		verify()
+	case "0":
+		os.Exit(0)
 	}
 
 	argsWithoutProg := os.Args[1:]
