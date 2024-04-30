@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
 	"github.com/surrealdb/surrealdb.go"
 )
 
@@ -59,19 +59,20 @@ func transferMoney(transfer Transfer) error {
 		return errors.New("incorrect pin")
 
 	}
-	amount, err := strconv.ParseFloat(transfer.Amount, 64)
+	amount, err := decimal.NewFromString(transfer.Amount)
 	if err != nil {
 		return fmt.Errorf("failed to parse transfer amount: %w", err)
 	}
-	balance, err := strconv.ParseFloat(acc1.Balance, 64)
+	balance, err := decimal.NewFromString(acc1.Balance)
 	fmt.Print("balance: " + acc1.Balance + " amount: " + transfer.Amount)
 	if err != nil {
 		return err
 	}
-	if amount <= 0 {
+	if decimal.NewFromInt(0).GreaterThanOrEqual(amount) {
 		return errors.New("invalid amount")
 	}
-	if amount*1.1 >= balance {
+	// 10% tax
+	if amount.Mul(decimal.NewFromFloat(1.1)).GreaterThan(balance) {
 		return errors.New("insufficient funds")
 	}
 	var transactions []TransactionLog
@@ -90,7 +91,7 @@ func transferMoney(transfer Transfer) error {
 	}
 	transactionsString := string(transactionsJSON)
 	fmt.Println("transactions: " + transactionsString)
-	changes := map[string]string{"balance": fmt.Sprintf("%f", (balance - amount*1.1)), "name": acc1.Name, "pin": acc1.Pin, "transactions": transactionsString}
+	changes := map[string]string{"balance": balance.Sub(amount.Mul(decimal.NewFromFloat(1.1))).String(), "name": acc1.Name, "pin": acc1.Pin, "transactions": transactionsString}
 	if _, err = db.Update(transfer.From, changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.From, err)
 	}
@@ -103,11 +104,12 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	balance, err = strconv.ParseFloat(acc2.Balance, 64)
+	balance, err = decimal.NewFromString(acc2.Balance)
+	//balance, err = strconv.ParseFloat(acc2.Balance, 64)
 	if err != nil {
 		return err
 	}
-	changes = map[string]string{"balance": fmt.Sprintf("%f", (amount + balance)), "name": acc2.Name, "pin": acc2.Pin, "transactions": transactionsString}
+	changes = map[string]string{"balance": amount.Add(balance).String(), "name": acc2.Name, "pin": acc2.Pin, "transactions": transactionsString}
 	if _, err = db.Update(transfer.To, changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.To, err)
 	}
@@ -120,7 +122,7 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	changes = map[string]string{"balance": fmt.Sprintf("%f", amount*0.1+balance), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsString}
+	changes = map[string]string{"balance": amount.Mul(decimal.NewFromFloat(0.1)).Add(balance).String(), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsString}
 	if _, err = db.Update("user:zentralbank", changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
 	}
