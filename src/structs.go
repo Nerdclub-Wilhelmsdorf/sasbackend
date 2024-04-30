@@ -34,3 +34,14 @@ type BalanceCheck struct {
 	ID  string `json:"id"`
 	Pin string `json:"pin"`
 }
+
+type TransactionLog struct {
+	Time   string `json:"time"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Amount string `json:"amount"`
+}
+
+type StoreTransactions struct {
+	Transactions []TransactionLog
+}
