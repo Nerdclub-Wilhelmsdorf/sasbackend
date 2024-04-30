@@ -1,10 +1,6 @@
 package main
 
-import (
-	"fmt"
-)
-
-func test() {
+/*func test() {
 	// Create a new account
 	user := Account{
 		Name:    "203876",
@@ -47,4 +43,4 @@ func test() {
 		panic(err)
 	}
 	fmt.Println("Balance:", balance)
-}
+}*/

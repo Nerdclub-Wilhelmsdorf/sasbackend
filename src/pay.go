@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -73,7 +74,23 @@ func transferMoney(transfer Transfer) error {
 	if amount*1.1 >= balance {
 		return errors.New("insufficient funds")
 	}
-	changes := map[string]string{"balance": fmt.Sprintf("%f", (balance - amount*1.1)), "name": acc1.Name, "pin": acc1.Pin}
+	var transactions []TransactionLog
+	if acc1.Transactions == "" {
+		transactions = []TransactionLog{}
+	} else {
+		err = json.Unmarshal([]byte(acc1.Transactions), &transactions)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal transactions: %w", err)
+		}
+	}
+	transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
+	transactionsJSON, err := json.Marshal(transactions)
+	if err != nil {
+		return fmt.Errorf("failed to marshal transactions: %w", err)
+	}
+	transactionsString := string(transactionsJSON)
+	fmt.Println("transactions: " + transactionsString)
+	changes := map[string]string{"balance": fmt.Sprintf("%f", (balance - amount*1.1)), "name": acc1.Name, "pin": acc1.Pin, "transactions": transactionsString}
 	if _, err = db.Update(transfer.From, changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.From, err)
 	}
@@ -90,7 +107,7 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return err
 	}
-	changes = map[string]string{"balance": fmt.Sprintf("%f", (amount + balance)), "name": acc2.Name, "pin": acc2.Pin}
+	changes = map[string]string{"balance": fmt.Sprintf("%f", (amount + balance)), "name": acc2.Name, "pin": acc2.Pin, "transactions": transactionsString}
 	if _, err = db.Update(transfer.To, changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.To, err)
 	}
@@ -103,7 +120,7 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	changes = map[string]string{"balance": fmt.Sprintf("%f", amount*0.1+balance), "name": acc3.Name, "pin": acc3.Pin}
+	changes = map[string]string{"balance": fmt.Sprintf("%f", amount*0.1+balance), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsString}
 	if _, err = db.Update("user:zentralbank", changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
 	}

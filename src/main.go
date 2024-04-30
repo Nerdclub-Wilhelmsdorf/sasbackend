@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -27,22 +26,24 @@ func main() {
 	defer f.Close()
 	e.POST("/addAccount", addAccount)
 	e.POST("/balanceCheck", checkBalance)
+	e.POST("/getLogs", getLogs)
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: currTime() + "method=${method}, uri=${uri}, status=${status}\n",
 		Output: f,
 	}))
 	e.Use(middleware.CORS())
 	//e.Use(middleware.Secure())
+	/*
+		e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+			return key == "test", nil
+		}))
 
-	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
-		return key == "test", nil
-	}))
 
-	if err := e.StartTLS(":8443", "fullchain.pem", "privkey.pem"); err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
-
-	//e.Logger.Fatal(e.Start(":1213"))
+			if err := e.StartTLS(":8443", "fullchain.pem", "privkey.pem"); err != http.ErrServerClosed {
+				log.Fatal(err)
+			}
+	*/
+	e.Logger.Fatal(e.Start(":1213"))
 }
 
 func currTime() string {

@@ -13,11 +13,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type TransactionLog struct {
+	Time   string `json:"time"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Amount string `json:"amount"`
+}
+
 type Account struct {
-	ID      string `json:"id,omitempty"`
-	Name    string `json:"name"`
-	Balance string `json:"balance"`
-	Pin     string `json:"pin"`
+	ID           string `json:"id,omitempty"`
+	Name         string `json:"name"`
+	Balance      string `json:"balance"`
+	Pin          string `json:"pin"`
+	Transactions string `json:"transactions"`
 }
 
 func main() {
@@ -90,7 +98,7 @@ func create() {
 		fmt.Println(err)
 	} else {
 		fmt.Println("User created successfully with ID: " + id + " and Pin:" + user.Pin)
-		fmt.Println("\n")
+		fmt.Print("\n")
 		main()
 
 	}
@@ -102,34 +110,38 @@ func createAccountStruct(user *Account, name string, balance string, id string, 
 		if pin == "" {
 			userRef := user
 			*userRef = Account{
-				Name:    HashPassword(name),
-				Balance: balance,
-				Pin:     HashPassword(randomPin()),
+				Name:         HashPassword(name),
+				Balance:      balance,
+				Pin:          HashPassword(randomPin()),
+				Transactions: "",
 			}
 		} else {
 			userRef := user
 			*userRef = Account{
-				Name:    HashPassword(name),
-				Balance: balance,
-				Pin:     pin,
+				Name:         HashPassword(name),
+				Balance:      balance,
+				Pin:          pin,
+				Transactions: "",
 			}
 		}
 	} else {
 		if pin == "" {
 			userRef := user
 			*userRef = Account{
-				ID:      id,
-				Name:    HashPassword(name),
-				Balance: balance,
-				Pin:     HashPassword(randomPin()),
+				ID:           id,
+				Name:         HashPassword(name),
+				Balance:      balance,
+				Pin:          HashPassword(randomPin()),
+				Transactions: "",
 			}
 		} else {
 			userRef := user
 			*userRef = Account{
-				ID:      id,
-				Name:    HashPassword(name),
-				Balance: balance,
-				Pin:     HashPassword(pin),
+				ID:           id,
+				Name:         HashPassword(name),
+				Balance:      balance,
+				Pin:          HashPassword(pin),
+				Transactions: "",
 			}
 		}
 	}
@@ -204,7 +216,7 @@ func listAll() {
 	// Print the JSON data
 	fmt.Println(string(jsonData))
 
-	fmt.Println("\n")
+	fmt.Print("\n")
 	main()
 }
 
@@ -224,7 +236,7 @@ func delete() {
 		fmt.Println("User with ID: " + id + " deleted successfully.")
 	}
 
-	fmt.Println("\n")
+	fmt.Print("\n")
 	main()
 }
 
@@ -275,7 +287,7 @@ func changepin() {
 		panic(err)
 	}
 
-	fmt.Println("\n")
+	fmt.Print("\n")
 	main()
 }
 
@@ -306,7 +318,7 @@ func verify() {
 		fmt.Println("Error")
 	}
 
-	fmt.Println("\n")
+	fmt.Print("\n")
 	main()
 }
 

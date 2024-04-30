@@ -19,7 +19,7 @@ func addAccount(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Error hashing password")
 	}
-	accountCreationData := Account{Pin: passrd, Name: accountData.NAME, Balance: "0"}
+	accountCreationData := Account{Pin: passrd, Name: accountData.NAME, Balance: "0", Transactions: ""}
 	id, err := createAccount(accountCreationData)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())

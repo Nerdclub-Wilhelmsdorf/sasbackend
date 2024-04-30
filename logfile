@@ -99,3 +99,32 @@ method=OPTIONS, uri=/pay, status=204
 method=POST, uri=/pay, status=200
 method=OPTIONS, uri=/balanceCheck, status=204
 method=POST, uri=/balanceCheck, status=200
+04-30-2024 21:43:53method=POST, uri=/pay, status=500
+04-30-2024 21:46:07method=POST, uri=/pay, status=500
+04-30-2024 21:46:40method=POST, uri=/pay, status=200
+04-30-2024 21:46:40method=POST, uri=/pay, status=200
+04-30-2024 21:47:31method=POST, uri=/pay, status=200
+04-30-2024 21:48:04method=POST, uri=/pay, status=200
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:10:55method=POST, uri=/getLogs, status=418
+04-30-2024 22:15:28method=POST, uri=/getLogs, status=418
+04-30-2024 22:15:59method=POST, uri=/getLogs, status=418
+04-30-2024 22:15:59method=POST, uri=/getLogs, status=418
+04-30-2024 22:16:44method=POST, uri=/getLogs, status=418
+04-30-2024 22:17:46method=POST, uri=/getLogs, status=418
+04-30-2024 22:19:32method=POST, uri=/getLogs, status=418
+04-30-2024 22:20:10method=POST, uri=/getLogs, status=418
+04-30-2024 22:20:16method=POST, uri=/getLogs, status=418
+04-30-2024 22:20:16method=POST, uri=/getLogs, status=200
+04-30-2024 22:20:16method=POST, uri=/getLogs, status=200
+04-30-2024 22:20:16method=POST, uri=/getLogs, status=200
+04-30-2024 22:20:16method=POST, uri=/pay, status=200
+04-30-2024 22:23:23method=POST, uri=/getLogs, status=200
+04-30-2024 22:25:59method=POST, uri=/getLogs, status=200

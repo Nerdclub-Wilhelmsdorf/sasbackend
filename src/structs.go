@@ -17,10 +17,11 @@ type BalanceRoute struct {
 }
 
 type Account struct {
-	ID      string `json:"id,omitempty"`
-	Name    string `json:"name"`
-	Balance string `json:"balance"`
-	Pin     string `json:"pin"`
+	ID           string `json:"id,omitempty"`
+	Name         string `json:"name"`
+	Balance      string `json:"balance"`
+	Pin          string `json:"pin"`
+	Transactions string `json:"transactions"`
 }
 
 type Transfer struct {
@@ -42,6 +43,7 @@ type TransactionLog struct {
 	Amount string `json:"amount"`
 }
 
-type StoreTransactions struct {
-	Transactions []TransactionLog
+type GetLogs struct {
+	Acc string `json:"acc" xml:"acc" form:"acc" query:"acc"`
+	Pin string `json:"pin" xml:"pin" form:"pin" query:"pin"`
 }

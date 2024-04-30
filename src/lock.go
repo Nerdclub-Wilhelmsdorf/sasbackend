@@ -1,6 +1,8 @@
 package main
 
-import "time"
+import (
+	"time"
+)
 
 // map of users with name and bool
 var failedAttempts = make(map[string]int)
