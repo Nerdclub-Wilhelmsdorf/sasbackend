@@ -105,7 +105,6 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
 	balance, err = decimal.NewFromString(acc2.Balance)
-	//balance, err = strconv.ParseFloat(acc2.Balance, 64)
 	if err != nil {
 		return err
 	}
