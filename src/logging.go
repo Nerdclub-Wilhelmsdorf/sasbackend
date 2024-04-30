@@ -19,9 +19,6 @@ func getLogs(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusTeapot, err.Error())
 	}
-	if err != nil {
-		return c.String(http.StatusTeapot, err.Error())
-	}
 	return c.JSON(http.StatusOK, getLogs)
 }
 
@@ -55,5 +52,4 @@ func readLogs(ID string, PIN string) (string, error) {
 		return acc1.Transactions, nil
 	}
 
-	return acc1.Transactions, nil
 }
