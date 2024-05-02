@@ -37,6 +37,8 @@ func main() {
 	fmt.Println("[3] list - list all accounts")
 	fmt.Println("[4] changepin - change the pin of an account")
 	fmt.Println("[5] verify - verify an account")
+	fmt.Println("[6] getlogs - get the logs of an account")
+
 	fmt.Println("[0] exit - exit the program")
 	fmt.Println("Please enter the number of the command you would like to run:")
 	scanner := bufio.NewScanner(os.Stdin)
@@ -56,6 +58,8 @@ func main() {
 		changepin()
 	case "5":
 		verify()
+	case "6":
+		getlogs()
 	case "0":
 		os.Exit(0)
 	}
@@ -329,4 +333,39 @@ func CheckPasswordHash(password, hash string) bool {
 func HashPassword(password string) string {
 	bytes, _ := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes)
+}
+func getlogs() {
+	var id string
+	fmt.Println("Enter Account ID:")
+	fmt.Scanln(&id)
+	logs, err := readLogs(id)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(logs)
+}
+
+func readLogs(ID string) (string, error) {
+	//fmt.Println(ID, PIN)
+	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	defer db.Close()
+	if _, err := db.Use("user", "user"); err != nil {
+		return "", fmt.Errorf("failed to use database: %w", err)
+	}
+	data, err := db.Select(ID)
+	if err != nil {
+		return "", fmt.Errorf("failed to select account with ID %s: %w", ID, err)
+	}
+	acc1 := new(Account)
+	err = surrealdb.Unmarshal(data, &acc1)
+	if err != nil {
+		return "", fmt.Errorf("failed to unmarshal account data: %w", err)
+	}
+	fmt.Println(acc1.Transactions)
+	if acc1.Transactions == "" {
+		return "", fmt.Errorf("no transactions found for account with ID %s", ID)
+	} else {
+		return acc1.Transactions, nil
+	}
+
 }
