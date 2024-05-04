@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -57,7 +58,10 @@ func readLogs(ID string, PIN string) (string, error) {
 }
 
 func logfile(transaction TransactionLog) error {
-	os.Create("transactions.csv")
+	//create file if it doesn't exist
+	if _, err := os.Stat("/path/to/whatever"); errors.Is(err, os.ErrNotExist) {
+		os.Create("transactions.csv")
+	}
 	file, err := os.OpenFile("transactions.csv", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
