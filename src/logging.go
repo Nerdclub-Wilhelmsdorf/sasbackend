@@ -59,7 +59,7 @@ func readLogs(ID string, PIN string) (string, error) {
 
 func logfile(transaction TransactionLog) error {
 	//create file if it doesn't exist
-	if _, err := os.Stat("/path/to/whatever"); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat("transactions.csv"); errors.Is(err, os.ErrNotExist) {
 		os.Create("transactions.csv")
 	}
 	file, err := os.OpenFile("transactions.csv", os.O_APPEND|os.O_WRONLY, 0644)
