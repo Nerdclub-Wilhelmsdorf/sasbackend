@@ -58,7 +58,7 @@ func readLogs(ID string, PIN string) (string, error) {
 
 func logfile(transaction TransactionLog) error {
 	os.Create("transactions.csv")
-	file, err := os.OpenFile("data1.csv", os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile("transactions.csv", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
