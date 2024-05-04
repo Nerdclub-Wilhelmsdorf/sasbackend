@@ -84,6 +84,10 @@ func transferMoney(transfer Transfer) error {
 			return fmt.Errorf("failed to unmarshal transactions: %w", err)
 		}
 	}
+	err = logfile(TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
+	if err != nil {
+		return fmt.Errorf("failed to log transaction: %w", err)
+	}
 	transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
 	transactionsJSON, err := json.Marshal(transactions)
 	if err != nil {

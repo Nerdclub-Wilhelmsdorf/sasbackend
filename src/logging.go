@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
@@ -52,4 +54,21 @@ func readLogs(ID string, PIN string) (string, error) {
 		return acc1.Transactions, nil
 	}
 
+}
+
+func logfile(transaction TransactionLog) error {
+	os.Create("transactions.csv")
+	file, err := os.OpenFile("data1.csv", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+	data := []string{transaction.Time, transaction.From, transaction.To, transaction.Amount}
+	err = writer.Write(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
