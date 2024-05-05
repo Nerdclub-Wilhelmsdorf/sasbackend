@@ -28,6 +28,7 @@ func main() {
 	e.POST("/addAccount", addAccount)
 	e.POST("/balanceCheck", checkBalance)
 	e.POST("/getLogs", getLogs)
+	e.POST("/verify", verfiy_account)
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: currTime() + "method=${method}, uri=${uri}, status=${status}\n",
 		Output: f,
