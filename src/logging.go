@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
@@ -61,6 +62,19 @@ func logfile(transaction TransactionLog) error {
 	//create file if it doesn't exist
 	if _, err := os.Stat("transactions.csv"); errors.Is(err, os.ErrNotExist) {
 		os.Create("transactions.csv")
+		//create header
+		file, err := os.OpenFile("transactions.csv", os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		writer := csv.NewWriter(file)
+		defer writer.Flush()
+		data := []string{"Time", "From", "To", "Amount"}
+		err = writer.Write(data)
+		if err != nil {
+			return err
+		}
 	}
 	file, err := os.OpenFile("transactions.csv", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
@@ -69,7 +83,7 @@ func logfile(transaction TransactionLog) error {
 	defer file.Close()
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
-	data := []string{transaction.Time, transaction.From, transaction.To, transaction.Amount}
+	data := []string{transaction.Time, strings.TrimPrefix(transaction.From, "user:"), strings.TrimPrefix(transaction.From, "user:"), transaction.Amount}
 	err = writer.Write(data)
 	if err != nil {
 		return err
