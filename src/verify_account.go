@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
@@ -22,11 +23,13 @@ const (
 func verfiy_account(c echo.Context) error {
 	accData := new(AccountRoute)
 	if err := c.Bind(accData); err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
+		return c.String(http.StatusTeapot, err.Error())
 	}
 	if accData.NAME == "" || accData.PIN == "" {
 		return c.String(http.StatusBadRequest, "missing parameters")
 	}
+	accData.NAME = strings.ReplaceAll(accData.NAME, " ", "")
+	accData.PIN = strings.ReplaceAll(accData.PIN, " ", "")
 	acc, _ := verifyAccount("user:"+accData.NAME, accData.PIN)
 	switch acc {
 	case Suspended:

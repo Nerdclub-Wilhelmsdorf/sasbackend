@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/shopspring/decimal"
@@ -19,9 +20,15 @@ func pay(c echo.Context) error {
 	if paymentData.Acc1 == "" || paymentData.Acc2 == "" || paymentData.Amount == "" || paymentData.Pin == "" {
 		return c.String(http.StatusBadRequest, "missing parameters")
 	}
+	paymentData.Acc1 = strings.ReplaceAll(paymentData.Acc1, " ", "")
+	paymentData.Acc2 = strings.ReplaceAll(paymentData.Acc2, " ", "")
+	paymentData.Amount = strings.ReplaceAll(paymentData.Amount, " ", "")
+	paymentData.Amount = strings.ReplaceAll(paymentData.Amount, ",", ".")
+	paymentData.Pin = strings.ReplaceAll(paymentData.Pin, " ", "")
+
 	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
 	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
+		return c.String(http.StatusTeapot, err.Error())
 	}
 	return c.String(http.StatusOK, "payment successful")
 }

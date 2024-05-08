@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
@@ -12,12 +13,18 @@ import (
 func checkBalance(c echo.Context) error {
 	balanceData := new(BalanceRoute)
 	if err := c.Bind(balanceData); err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
+		return c.String(http.StatusTeapot, err.Error())
 	}
+	if balanceData.Acc1 == "" || balanceData.Pin == "" {
+		return c.String(http.StatusBadRequest, "missing parameters")
+	}
+	balanceData.Acc1 = strings.ReplaceAll(balanceData.Acc1, " ", "")
+	balanceData.Pin = strings.ReplaceAll(balanceData.Pin, " ", "")
+
 	fmt.Println(balanceData.Acc1, balanceData.Pin)
 	balance, err := balanceCheck(BalanceCheck{ID: "user:" + balanceData.Acc1, Pin: balanceData.Pin})
 	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
+		return c.String(http.StatusTeapot, err.Error())
 	}
 	return c.String(http.StatusOK, balance)
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/surrealdb/surrealdb.go"
@@ -13,16 +14,23 @@ import (
 func addAccount(c echo.Context) error {
 	accountData := new(AccountRoute)
 	if err := c.Bind(accountData); err != nil {
-		return c.String(http.StatusInternalServerError, "Error getting data")
+		return c.String(http.StatusTeapot, "Error getting data")
 	}
+	if accountData.NAME == "" || accountData.PIN == "" {
+		return c.String(http.StatusBadRequest, "missing parameters")
+	}
+	accountData.NAME = strings.ReplaceAll(accountData.NAME, " ", "")
+	accountData.PIN = strings.ReplaceAll(accountData.PIN, " ", "")
+
 	passrd, err := HashPassword(accountData.PIN)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "Error hashing password")
+		return c.String(http.StatusTeapot, "Error hashing password")
 	}
+
 	accountCreationData := Account{Pin: passrd, Name: accountData.NAME, Balance: "0", Transactions: ""}
 	id, err := createAccount(accountCreationData)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, err.Error())
+		return c.String(http.StatusTeapot, err.Error())
 	}
 	id = id[len("user:"):]
 	return c.String(http.StatusOK, id)

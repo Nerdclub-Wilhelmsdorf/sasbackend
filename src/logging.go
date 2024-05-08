@@ -17,7 +17,11 @@ func getLogs(c echo.Context) error {
 	if err := c.Bind(logs); err != nil {
 		return err
 	}
-
+	if logs.Acc == "" || logs.Pin == "" {
+		return c.String(http.StatusBadRequest, "missing parameters")
+	}
+	logs.Acc = strings.ReplaceAll(logs.Acc, " ", "")
+	logs.Pin = strings.ReplaceAll(logs.Pin, " ", "")
 	fmt.Println(logs)
 	getLogs, err := readLogs("user:"+logs.Acc, logs.Pin)
 	if err != nil {
