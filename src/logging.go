@@ -49,13 +49,12 @@ func readLogs(ID string, PIN string) (string, error) {
 	if !CheckPasswordHash(PIN, acc1.Pin) {
 		return "", fmt.Errorf("incorrect pin")
 	}
-
 	if failedAttempts[ID] > 3 {
 		return "", fmt.Errorf("suspended")
 	}
 	fmt.Println(acc1.Transactions)
 	if acc1.Transactions == "" {
-		return "", fmt.Errorf("no transactions found for account with ID %s", ID)
+		return "", nil
 	} else {
 		return acc1.Transactions, nil
 	}
