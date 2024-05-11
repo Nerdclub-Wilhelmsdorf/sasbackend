@@ -13,7 +13,7 @@ import (
 func checkBalance(c echo.Context) error {
 	balanceData := new(BalanceRoute)
 	if err := c.Bind(balanceData); err != nil {
-		return c.String(http.StatusTeapot, err.Error())
+		return c.String(http.StatusCreated, err.Error())
 	}
 	if balanceData.Acc1 == "" || balanceData.Pin == "" {
 		return c.String(http.StatusBadRequest, "missing parameters")
@@ -24,7 +24,7 @@ func checkBalance(c echo.Context) error {
 	fmt.Println(balanceData.Acc1, balanceData.Pin)
 	balance, err := balanceCheck(BalanceCheck{ID: "user:" + balanceData.Acc1, Pin: balanceData.Pin})
 	if err != nil {
-		return c.String(http.StatusTeapot, err.Error())
+		return c.String(http.StatusCreated, err.Error())
 	}
 	return c.String(http.StatusOK, balance)
 }

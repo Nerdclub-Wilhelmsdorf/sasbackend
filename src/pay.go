@@ -28,7 +28,7 @@ func pay(c echo.Context) error {
 
 	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
 	if err != nil {
-		return c.String(http.StatusTeapot, err.Error())
+		return c.String(http.StatusCreated, err.Error())
 	}
 	return c.String(http.StatusOK, "payment successful")
 }
@@ -96,11 +96,14 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to log transaction: %w", err)
 	}
 	transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
+	transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.Mul(decimal.NewFromFloat(0.9)).String()})
 	transactionsJSON, err := json.Marshal(transactions)
-	if err != nil {
+	transactionsRecieverJSON, err2 := json.Marshal(transactionsReciever)
+	if err != nil && err2 != nil {
 		return fmt.Errorf("failed to marshal transactions: %w", err)
 	}
 	transactionsString := string(transactionsJSON)
+	transactionsRecieverString := string(transactionsRecieverJSON)
 	fmt.Println("transactions: " + transactionsString)
 	changes := map[string]string{"balance": balance.Sub(amount.Mul(decimal.NewFromFloat(1.1))).String(), "name": acc1.Name, "pin": acc1.Pin, "transactions": transactionsString}
 	if _, err = db.Update(transfer.From, changes); err != nil {
@@ -119,7 +122,7 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return err
 	}
-	changes = map[string]string{"balance": amount.Add(balance).String(), "name": acc2.Name, "pin": acc2.Pin, "transactions": transactionsString}
+	changes = map[string]string{"balance": amount.Add(balance).String(), "name": acc2.Name, "pin": acc2.Pin, "transactions": transactionsRecieverString}
 	if _, err = db.Update(transfer.To, changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.To, err)
 	}

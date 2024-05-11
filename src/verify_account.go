@@ -23,7 +23,7 @@ const (
 func verfiy_account(c echo.Context) error {
 	accData := new(AccountRoute)
 	if err := c.Bind(accData); err != nil {
-		return c.String(http.StatusTeapot, err.Error())
+		return c.String(http.StatusCreated, err.Error())
 	}
 	if accData.NAME == "" || accData.PIN == "" {
 		return c.String(http.StatusBadRequest, "missing parameters")

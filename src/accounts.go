@@ -14,7 +14,7 @@ import (
 func addAccount(c echo.Context) error {
 	accountData := new(AccountRoute)
 	if err := c.Bind(accountData); err != nil {
-		return c.String(http.StatusTeapot, "Error getting data")
+		return c.String(http.StatusCreated, "Error getting data")
 	}
 	if accountData.NAME == "" || accountData.PIN == "" {
 		return c.String(http.StatusBadRequest, "missing parameters")
@@ -24,13 +24,13 @@ func addAccount(c echo.Context) error {
 
 	passrd, err := HashPassword(accountData.PIN)
 	if err != nil {
-		return c.String(http.StatusTeapot, "Error hashing password")
+		return c.String(http.StatusCreated, "Error hashing password")
 	}
 
 	accountCreationData := Account{Pin: passrd, Name: accountData.NAME, Balance: "0", Transactions: ""}
 	id, err := createAccount(accountCreationData)
 	if err != nil {
-		return c.String(http.StatusTeapot, err.Error())
+		return c.String(http.StatusCreated, err.Error())
 	}
 	id = id[len("user:"):]
 	return c.String(http.StatusOK, id)

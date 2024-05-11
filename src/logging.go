@@ -25,7 +25,7 @@ func getLogs(c echo.Context) error {
 	fmt.Println(logs)
 	getLogs, err := readLogs("user:"+logs.Acc, logs.Pin)
 	if err != nil {
-		return c.String(http.StatusTeapot, err.Error())
+		return c.String(http.StatusCreated, err.Error())
 	}
 	return c.JSON(http.StatusOK, getLogs)
 }
