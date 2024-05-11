@@ -96,7 +96,7 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to log transaction: %w", err)
 	}
 	transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
-	transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.Mul(decimal.NewFromFloat(0.9)).String()})
+	transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.Div(decimal.NewFromFloat(1.1)).String()})
 	transactionsJSON, err := json.Marshal(transactions)
 	transactionsRecieverJSON, err2 := json.Marshal(transactionsReciever)
 	if err != nil && err2 != nil {
@@ -110,6 +110,7 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.From, err)
 	}
 	data, err = db.Select(transfer.To)
+	amount = amount.Div(decimal.NewFromFloat(1.1))
 	if err != nil {
 		return fmt.Errorf("failed to select account with ID %s: %w", transfer.To, err)
 	}
