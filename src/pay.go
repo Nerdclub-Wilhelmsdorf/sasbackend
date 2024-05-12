@@ -48,14 +48,8 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-
 	if failedAttempts[transfer.From] > 3 {
 		return fmt.Errorf("suspended")
-	}
-	acc2 := new(Account)
-	err = surrealdb.Unmarshal(data, &acc2)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
 
 	if !CheckPasswordHash(transfer.Pin, acc1.Pin) {
@@ -119,6 +113,11 @@ func transferMoney(transfer Transfer) error {
 	amount = amount.Div(decimal.NewFromFloat(1.1))
 	if err != nil {
 		return fmt.Errorf("failed to select account with ID %s: %w", transfer.To, err)
+	}
+	acc2 := new(Account)
+	err = surrealdb.Unmarshal(data, &acc2)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
 	balance, err = decimal.NewFromString(acc2.Balance)
 	if err != nil {
