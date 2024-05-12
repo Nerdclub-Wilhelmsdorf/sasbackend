@@ -43,6 +43,10 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to select account with ID %s: %w", transfer.From, err)
 	}
+	_, err = db.Select(transfer.To)
+	if err != nil {
+		return fmt.Errorf("failed to select account with ID %s: %w", transfer.From, err)
+	}
 	acc1 := new(Account)
 	err = surrealdb.Unmarshal(data, &acc1)
 	if err != nil {
