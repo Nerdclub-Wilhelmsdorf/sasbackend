@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -63,7 +64,9 @@ func transferMoney(transfer Transfer) error {
 		}
 		failedAttempts[transfer.From] += 1
 		if failedAttempts[transfer.From] == 3 {
-			go resetTimer(transfer.From)
+			if !slices.Contains(failedAttemtsCurrentlyLocking, transfer.From) {
+				go resetTimer(transfer.From)
+			}
 			return errors.New("suspended")
 		}
 
