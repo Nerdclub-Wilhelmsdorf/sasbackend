@@ -7,8 +7,8 @@
     1. [Account Creation](#account)
     2. [Balance Check](#balance)
     3. [Verify](#verify)
-    4. [Get Logs](#Logs)
-    5. [Transaction](#Logs)
+    4. [Get Logs](#logs)
+    5. [Transaction](#transaction)
 
 
 ### Introduction
