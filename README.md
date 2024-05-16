@@ -1,2 +1,2 @@
-# sasbackend_surrealdb
-Das SaSBackend mit SurrealDB anstelle von GradecryptDB
+# sasbackend
+The Backend for our "Schule als Staat" project
