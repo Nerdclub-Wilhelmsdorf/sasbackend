@@ -9,6 +9,7 @@ import (
 	"math/big"
 	"os"
 
+	"github.com/shopspring/decimal"
 	"github.com/surrealdb/surrealdb.go"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,6 +39,8 @@ func main() {
 	fmt.Println("[4] changepin - change the pin of an account")
 	fmt.Println("[5] verify - verify an account")
 	fmt.Println("[6] getlogs - get the logs of an account")
+	fmt.Println("[7] transfer - transfer money between accounts")
+	fmt.Println("[8] reversal - reverse a transaction")
 
 	fmt.Println("[0] exit - exit the program")
 	fmt.Println("Please enter the number of the command you would like to run:")
@@ -60,6 +63,10 @@ func main() {
 		verify()
 	case "6":
 		getlogs()
+	case "7":
+		transfer()
+	case "8":
+		reversal()
 	case "0":
 		os.Exit(0)
 	}
@@ -286,7 +293,7 @@ func changepin() {
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
 	}
-	changes := map[string]string{"pin": HashPassword(pin), "name": selectedUser.Name, "balance": selectedUser.Balance}
+	changes := map[string]string{"pin": HashPassword(pin), "name": selectedUser.Name, "balance": selectedUser.Balance, "transactions": selectedUser.Transactions}
 	if _, err = db.Update(selectedUser.ID, changes); err != nil {
 		panic(err)
 	}
@@ -367,5 +374,131 @@ func readLogs(ID string) (string, error) {
 	} else {
 		return acc1.Transactions, nil
 	}
+
+}
+
+func transfer() {
+	var from string
+	var to string
+	var amount string
+	fmt.Println("Enter Account ID to transfer from:")
+	fmt.Scanln(&from)
+	fmt.Println("Enter Account ID to transfer to:")
+	fmt.Scanln(&to)
+	fmt.Println("Enter Amount:")
+	fmt.Scanln(&amount)
+	transferMoney(from, to, amount)
+}
+
+func transferMoney(from string, to string, amount string) {
+	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	defer db.Close()
+	if _, err := db.Use("user", "user"); err != nil {
+		fmt.Println(err)
+	}
+	data, err := db.Select(from)
+	if err != nil {
+		fmt.Println(err)
+	}
+	selectedUser := new(Account)
+	err = surrealdb.Unmarshal(data, &selectedUser)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if selectedUser.Balance < amount {
+		fmt.Println("Insufficient funds")
+	} else {
+		balance, _ := decimal.NewFromString(selectedUser.Balance)
+		amountDec, _ := decimal.NewFromString(amount)
+		changes := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Sub(amountDec).String()), "transactions": selectedUser.Transactions}
+		if _, err = db.Update(selectedUser.ID, changes); err != nil {
+			panic(err)
+		}
+		data, err = db.Select(to)
+		if err != nil {
+			fmt.Println(err)
+		}
+		selectedUser = new(Account)
+		err = surrealdb.Unmarshal(data, &selectedUser)
+		if err != nil {
+			fmt.Println(err)
+		}
+		balance, _ = decimal.NewFromString(selectedUser.Balance)
+		change := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Add(amountDec).String()), "transactions": selectedUser.Transactions}
+		if _, err = db.Update(selectedUser.ID, change); err != nil {
+			panic(err)
+		}
+
+		fmt.Println("Transfer successful")
+
+	}
+}
+
+func reversal() {
+	var amount string
+	var from string
+	var to string
+	fmt.Println("Enter Account ID to reverse transaction from:")
+	fmt.Scanln(&from)
+	fmt.Println("Enter Account ID to reverse transaction to:")
+	fmt.Scanln(&to)
+	fmt.Println("Amount payed (Taxes included):")
+	fmt.Scanln(&amount)
+	reverseTransaction(from, to, amount)
+}
+
+func reverseTransaction(from string, to string, amount string) {
+	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	defer db.Close()
+	if _, err := db.Use("user", "user"); err != nil {
+		fmt.Println(err)
+	}
+	data, err := db.Select(from)
+	if err != nil {
+		fmt.Println(err)
+	}
+	selectedUser := new(Account)
+	err = surrealdb.Unmarshal(data, &selectedUser)
+	if err != nil {
+		fmt.Println(err)
+	}
+	balance, _ := decimal.NewFromString(selectedUser.Balance)
+	amountDec, _ := decimal.NewFromString(amount)
+	changes := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Add(amountDec).String()), "transactions": selectedUser.Transactions}
+	if _, err = db.Update(selectedUser.ID, changes); err != nil {
+		panic(err)
+	}
+	data, err = db.Select(to)
+	if err != nil {
+		fmt.Println(err)
+	}
+	selectedUser = new(Account)
+	err = surrealdb.Unmarshal(data, &selectedUser)
+	if err != nil {
+		fmt.Println(err)
+	}
+	balance, _ = decimal.NewFromString(selectedUser.Balance)
+	amountToSubtract := amountDec.Div(decimal.NewFromFloat(1.1))
+	change := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": balance.Sub(amountToSubtract).String(), "transactions": selectedUser.Transactions}
+	if _, err = db.Update(selectedUser.ID, change); err != nil {
+		panic(err)
+	}
+	data, err = db.Select("user:zentralbank")
+	if err != nil {
+		fmt.Println(err)
+	}
+	selectedUser = new(Account)
+	err = surrealdb.Unmarshal(data, &selectedUser)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	balance, _ = decimal.NewFromString(selectedUser.Balance)
+	amountToRemove := amountToSubtract.Mul(decimal.NewFromFloat(0.1))
+	change = map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": balance.Sub(amountToRemove).String(), "transactions": selectedUser.Transactions}
+	if _, err = db.Update("user:zentralbank", change); err != nil {
+		panic(err)
+	}
+	fmt.Println("Transaction reversed successfully")
 
 }
