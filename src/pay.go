@@ -160,7 +160,7 @@ func transferMoney(transfer Transfer) error {
 			return fmt.Errorf("failed to unmarshal transactions: %w", err)
 		}
 	}
-	transactionsBank := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: "zentralbank", Amount: amount.Div(decimal.NewFromFloat(1.1)).Mul(decimal.NewFromFloat(0.1)).String()})
+	transactionsBank := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: "zentralbank", Amount: amount.Mul(decimal.NewFromFloat(0.1)).String()})
 	transactionsBankJSON, err2 := json.Marshal(transactionsBank)
 	if err2 != nil {
 		return fmt.Errorf("failed to unmarshal transaction")
@@ -170,7 +170,7 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	changes = map[string]string{"balance": amount.Div(decimal.NewFromFloat(1.1)).Mul(decimal.NewFromFloat(0.1)).Add(balance).String(), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsBankString}
+	changes = map[string]string{"balance": amount.Mul(decimal.NewFromFloat(0.1)).Add(balance).String(), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsBankString}
 	if _, err = db.Update("user:zentralbank", changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
 	}
