@@ -405,11 +405,11 @@ func transferMoney(from string, to string, amount string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if selectedUser.Balance < amount {
+	balance, _ := decimal.NewFromString(selectedUser.Balance)
+	amountDec, _ := decimal.NewFromString(amount)
+	if amountDec.GreaterThan(balance) {
 		fmt.Println("Insufficient funds")
 	} else {
-		balance, _ := decimal.NewFromString(selectedUser.Balance)
-		amountDec, _ := decimal.NewFromString(amount)
 		changes := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Sub(amountDec).String()), "transactions": selectedUser.Transactions}
 		if _, err = db.Update(selectedUser.ID, changes); err != nil {
 			panic(err)
