@@ -345,7 +345,7 @@ func getlogs() {
 	var id string
 	fmt.Println("Enter Account ID:")
 	fmt.Scanln(&id)
-	logs, err := readLogs(id)
+	logs, err := readLogs("user:" + id)
 	if err != nil {
 		panic(err)
 	}
