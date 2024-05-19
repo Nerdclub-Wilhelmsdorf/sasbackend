@@ -131,7 +131,7 @@ func transferMoney(transfer Transfer) error {
 			return fmt.Errorf("failed to unmarshal transactions: %w", err)
 		}
 	}
-	transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.Div(decimal.NewFromFloat(1.1)).String()})
+	transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.String()})
 	transactionsRecieverJSON, err2 := json.Marshal(transactionsReciever)
 	if err2 != nil {
 		return fmt.Errorf("failed to unmarshal transaction")
