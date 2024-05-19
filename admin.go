@@ -46,7 +46,7 @@ func main() {
 	fmt.Println("[8] reversal - reverse a transaction")
 
 	fmt.Println("[0] exit - exit the program")
-	fmt.Println("Please enter the number of the you would like to run:")
+	fmt.Println("Please enter the number of the command you would like to run:")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	if scanner.Err() != nil {
@@ -421,7 +421,29 @@ func transferMoney(from string, to string, amount string) {
 	if amountDec.GreaterThan(balance) {
 		fmt.Println("Insufficient funds")
 	} else {
-		changes := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Sub(amountDec).String()), "transactions": selectedUser.Transactions}
+		var transactions []TransactionLog
+		if selectedUser.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(selectedUser.Transactions), &transactions)
+			if err != nil {
+				return
+			}
+		}
+		err = logfile(TransactionLog{Time: currTime(), From: from, To: to, Amount: amount})
+		if err != nil {
+			return
+		}
+		fromFormatted, _ := strings.CutPrefix(from, "user:")
+		toFormatted, _ := strings.CutPrefix(to, "user:")
+		transactions = append(transactions, TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
+		transactionsJSON, err := json.Marshal(transactions)
+		if err != nil {
+			return
+		}
+		transactionsString := string(transactionsJSON)
+
+		changes := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Sub(amountDec).String()), "transactions": transactionsString}
 		if _, err = db.Update(selectedUser.ID, changes); err != nil {
 			panic(err)
 		}
@@ -435,98 +457,29 @@ func transferMoney(from string, to string, amount string) {
 			fmt.Println(err)
 		}
 		balance, _ = decimal.NewFromString(selectedUser.Balance)
-		change := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Add(amountDec).String()), "transactions": selectedUser.Transactions}
+		if selectedUser.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(selectedUser.Transactions), &transactions)
+			if err != nil {
+				return
+			}
+		}
+		err = logfile(TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
+		if err != nil {
+			return
+		}
+		transactions = append(transactions, TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
+		transactionsJSON, err = json.Marshal(transactions)
+		if err != nil {
+			return
+		}
+		transactionsString = string(transactionsJSON)
+
+		change := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Add(amountDec).String()), "transactions": selectedUser.transactionsString}
 		if _, err = db.Update(selectedUser.ID, change); err != nil {
 			panic(err)
 		}
-
-		var transactions []TransactionLog
-		if from.Transactions == "" {
-			transactions = []TransactionLog{}
-		} else {
-			err = json.Unmarshal([]byte(from.Transactions), &transactions)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal transactions: %w", err)
-			}
-		}
-		err = logfile(TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
-		if err != nil {
-			return fmt.Errorf("failed to log transaction: %w", err)
-		}
-		transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
-		transactionsJSON, err := json.Marshal(transactions)
-		if err != nil {
-			return fmt.Errorf("failed to marshal transactions: %w", err)
-		}
-		transactionsString := string(transactionsJSON)
-		fmt.Println("transactions: " + transactionsString)
-		changes := map[string]string{"balance": balance.Sub(amount.Mul(decimal.NewFromFloat(1.1))).String(), "name": acc1.Name, "pin": acc1.Pin, "transactions": transactionsString}
-		if _, err = db.Update(transfer.From, changes); err != nil {
-			return fmt.Errorf("failed to update account with ID %s: %w", transfer.From, err)
-		}
-		data, err = db.Select(transfer.To)
-		amount = amount.Div(decimal.NewFromFloat(1.1))
-		if err != nil {
-			return fmt.Errorf("failed to select account with ID %s: %w", transfer.To, err)
-		}
-		acc2 := new(Account)
-		err = surrealdb.Unmarshal(data, &acc2)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal account data: %w", err)
-		}
-		if acc2.Transactions == "" {
-			transactions = []TransactionLog{}
-		} else {
-			err = json.Unmarshal([]byte(acc2.Transactions), &transactions)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal transactions: %w", err)
-			}
-		}
-		transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.String()})
-		transactionsRecieverJSON, err2 := json.Marshal(transactionsReciever)
-		if err2 != nil {
-			return fmt.Errorf("failed to unmarshal transaction")
-		}
-		transactionsRecieverString := string(transactionsRecieverJSON)
-
-		balance, err = decimal.NewFromString(acc2.Balance)
-		if err != nil {
-			return err
-		}
-		changes = map[string]string{"balance": amount.Add(balance).String(), "name": acc2.Name, "pin": acc2.Pin, "transactions": transactionsRecieverString}
-		if _, err = db.Update(transfer.To, changes); err != nil {
-			return fmt.Errorf("failed to update account with ID %s: %w", transfer.To, err)
-		}
-		data, err = db.Select("user:zentralbank")
-		if err != nil {
-			return fmt.Errorf("failed to select account with ID %s: %w", "user:zentralbank", err)
-		}
-		acc3 := new(Account)
-		err = surrealdb.Unmarshal(data, &acc3)
-		if acc3.Transactions == "" {
-			transactions = []TransactionLog{}
-		} else {
-			err = json.Unmarshal([]byte(acc3.Transactions), &transactions)
-			if err != nil {
-				return fmt.Errorf("failed to unmarshal transactions: %w", err)
-			}
-		}
-		transactionsBank := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: "zentralbank", Amount: amount.Mul(decimal.NewFromFloat(0.1)).String()})
-		transactionsBankJSON, err2 := json.Marshal(transactionsBank)
-		if err2 != nil {
-			return fmt.Errorf("failed to unmarshal transaction")
-		}
-		transactionsBankString := string(transactionsBankJSON)
-		balance, err = decimal.NewFromString(acc3.Balance)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal account data: %w", err)
-		}
-		changes = map[string]string{"balance": amount.Mul(decimal.NewFromFloat(0.1)).Add(balance).String(), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsBankString}
-		if _, err = db.Update("user:zentralbank", changes); err != nil {
-			return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
-		}
-		delete(failedAttempts, transfer.Pin)
-		return nil
 
 		fmt.Println("Transfer successful")
 
@@ -563,6 +516,28 @@ func reverseTransaction(from string, to string, amount string) {
 	}
 	balance, _ := decimal.NewFromString(selectedUser.Balance)
 	amountDec, _ := decimal.NewFromString(amount)
+	var transactions []TransactionLog
+		if selectedUser.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(selectedUser.Transactions), &transactions)
+			if err != nil {
+				return
+			}
+		}
+		err = logfile(TransactionLog{Time: currTime(), From: from, To: to, Amount: amount})
+		if err != nil {
+			return
+		}
+		fromFormatted, _ := strings.CutPrefix(from, "user:")
+		toFormatted, _ := strings.CutPrefix(to, "user:")
+		transactions = append(transactions, TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
+		transactionsJSON, err := json.Marshal(transactions)
+		if err != nil {
+			return
+		}
+		transactionsString := string(transactionsJSON)
+
 	changes := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Add(amountDec).String()), "transactions": selectedUser.Transactions}
 	if _, err = db.Update(selectedUser.ID, changes); err != nil {
 		panic(err)
@@ -578,6 +553,22 @@ func reverseTransaction(from string, to string, amount string) {
 	}
 	balance, _ = decimal.NewFromString(selectedUser.Balance)
 	amountToSubtract := amountDec.Div(decimal.NewFromFloat(1.1))
+		if selectedUser.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(selectedUser.Transactions), &transactions)
+			if err != nil {
+				return
+			}
+		}
+		err = logfile(TransactionLog{Time: currTime(), From: from, To: to, Amount: amount})
+		if err != nil {
+			return
+		}
+		transactions = append(transactions, TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
+		if err != nil {
+			return
+		}
 	change := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": balance.Sub(amountToSubtract).String(), "transactions": selectedUser.Transactions}
 	if _, err = db.Update(selectedUser.ID, change); err != nil {
 		panic(err)
@@ -593,6 +584,22 @@ func reverseTransaction(from string, to string, amount string) {
 		fmt.Println(err)
 	}
 	balance, _ = decimal.NewFromString(selectedUser.Balance)
+		if selectedUser.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(selectedUser.Transactions), &transactions)
+			if err != nil {
+				return
+			}
+		}
+		err = logfile(TransactionLog{Time: currTime(), From: from, To: to, Amount: amount})
+		if err != nil {
+			return
+		}
+		transactions = append(transactions, TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
+		if err != nil {
+			return
+		}
 	amountToRemove := amountToSubtract.Mul(decimal.NewFromFloat(0.1))
 	change = map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": balance.Sub(amountToRemove).String(), "transactions": selectedUser.Transactions}
 	if _, err = db.Update("user:zentralbank", change); err != nil {
