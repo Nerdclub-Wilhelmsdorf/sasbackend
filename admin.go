@@ -387,7 +387,7 @@ func transfer() {
 	fmt.Scanln(&to)
 	fmt.Println("Enter Amount:")
 	fmt.Scanln(&amount)
-	transferMoney(from, to, amount)
+	transferMoney("user:"+from, "user:"+to, amount)
 }
 
 func transferMoney(from string, to string, amount string) {
@@ -444,7 +444,7 @@ func reversal() {
 	fmt.Scanln(&to)
 	fmt.Println("Amount payed (Taxes included):")
 	fmt.Scanln(&amount)
-	reverseTransaction(from, to, amount)
+	reverseTransaction("user:"+from, "user:"+to, amount)
 }
 
 func reverseTransaction(from string, to string, amount string) {
