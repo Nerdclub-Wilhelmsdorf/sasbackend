@@ -43,7 +43,7 @@ func main() {
 	fmt.Println("[8] reversal - reverse a transaction")
 
 	fmt.Println("[0] exit - exit the program")
-	fmt.Println("Please enter the number of the command you would like to run:")
+	fmt.Println("Please enter the number of the you would like to run:")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Scan()
 	if scanner.Err() != nil {
@@ -84,6 +84,14 @@ func main() {
 		changepin()
 	case "verify":
 		verify()
+	case "getlogs":
+		getlogs()
+	case "transfer":
+		transfer()
+	case "reversal":
+		reversal()
+	case "exit":
+		os.Exit(0)
 	}
 
 }

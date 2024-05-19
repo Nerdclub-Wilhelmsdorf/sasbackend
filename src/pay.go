@@ -103,14 +103,11 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to log transaction: %w", err)
 	}
 	transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
-	transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.Div(decimal.NewFromFloat(1.1)).String()})
 	transactionsJSON, err := json.Marshal(transactions)
-	transactionsRecieverJSON, err2 := json.Marshal(transactionsReciever)
-	if err != nil && err2 != nil {
+	if err != nil {
 		return fmt.Errorf("failed to marshal transactions: %w", err)
 	}
 	transactionsString := string(transactionsJSON)
-	transactionsRecieverString := string(transactionsRecieverJSON)
 	fmt.Println("transactions: " + transactionsString)
 	changes := map[string]string{"balance": balance.Sub(amount.Mul(decimal.NewFromFloat(1.1))).String(), "name": acc1.Name, "pin": acc1.Pin, "transactions": transactionsString}
 	if _, err = db.Update(transfer.From, changes); err != nil {
@@ -126,6 +123,21 @@ func transferMoney(transfer Transfer) error {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
+	if acc2.Transactions == "" {
+		transactions = []TransactionLog{}
+	} else {
+		err = json.Unmarshal([]byte(acc2.Transactions), &transactions)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal transactions: %w", err)
+		}
+	}
+	transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.Div(decimal.NewFromFloat(1.1)).String()})
+	transactionsRecieverJSON, err2 := json.Marshal(transactionsReciever)
+	if err2 != nil {
+		return fmt.Errorf("failed to unmarshal transaction")
+	}
+	transactionsRecieverString := string(transactionsRecieverJSON)
+
 	balance, err = decimal.NewFromString(acc2.Balance)
 	if err != nil {
 		return err
@@ -140,10 +152,25 @@ func transferMoney(transfer Transfer) error {
 	}
 	acc3 := new(Account)
 	err = surrealdb.Unmarshal(data, &acc3)
+	if acc3.Transactions == "" {
+		transactions = []TransactionLog{}
+	} else {
+		err = json.Unmarshal([]byte(acc3.Transactions), &transactions)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal transactions: %w", err)
+		}
+	}
+	transactionsBank := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: "zentralbank", Amount: amount.Div(decimal.NewFromFloat(1.1)).Mul(decimal.NewFromFloat(0.1)).String()})
+	transactionsBankJSON, err2 := json.Marshal(transactionsBank)
+	if err2 != nil {
+		return fmt.Errorf("failed to unmarshal transaction")
+	}
+	transactionsBankString := string(transactionsBankJSON)
+	balance, err = decimal.NewFromString(acc3.Balance)
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	changes = map[string]string{"balance": amount.Mul(decimal.NewFromFloat(0.1)).Add(balance).String(), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsString}
+	changes = map[string]string{"balance": amount.Div(decimal.NewFromFloat(1.1)).Mul(decimal.NewFromFloat(0.1)).Add(balance).String(), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsBankString}
 	if _, err = db.Update("user:zentralbank", changes); err != nil {
 		return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
 	}
