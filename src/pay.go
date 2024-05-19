@@ -89,6 +89,7 @@ func transferMoney(transfer Transfer) error {
 	if amount.Mul(decimal.NewFromFloat(1.1)).GreaterThan(balance) {
 		return errors.New("insufficient funds")
 	}
+
 	var transactions []TransactionLog
 	if acc1.Transactions == "" {
 		transactions = []TransactionLog{}
@@ -114,7 +115,7 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to update account with ID %s: %w", transfer.From, err)
 	}
 	data, err = db.Select(transfer.To)
-	amount = amount.Div(decimal.NewFromFloat(1.1))
+	//amount = amount.Div(decimal.NewFromFloat(1.1))
 	if err != nil {
 		return fmt.Errorf("failed to select account with ID %s: %w", transfer.To, err)
 	}

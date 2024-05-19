@@ -3,11 +3,14 @@ package main
 import (
 	"bufio"
 	"crypto/rand"
+	"encoding/csv"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/shopspring/decimal"
 	"github.com/surrealdb/surrealdb.go"
@@ -437,6 +440,94 @@ func transferMoney(from string, to string, amount string) {
 			panic(err)
 		}
 
+		var transactions []TransactionLog
+		if from.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(from.Transactions), &transactions)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal transactions: %w", err)
+			}
+		}
+		err = logfile(TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
+		if err != nil {
+			return fmt.Errorf("failed to log transaction: %w", err)
+		}
+		transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
+		transactionsJSON, err := json.Marshal(transactions)
+		if err != nil {
+			return fmt.Errorf("failed to marshal transactions: %w", err)
+		}
+		transactionsString := string(transactionsJSON)
+		fmt.Println("transactions: " + transactionsString)
+		changes := map[string]string{"balance": balance.Sub(amount.Mul(decimal.NewFromFloat(1.1))).String(), "name": acc1.Name, "pin": acc1.Pin, "transactions": transactionsString}
+		if _, err = db.Update(transfer.From, changes); err != nil {
+			return fmt.Errorf("failed to update account with ID %s: %w", transfer.From, err)
+		}
+		data, err = db.Select(transfer.To)
+		amount = amount.Div(decimal.NewFromFloat(1.1))
+		if err != nil {
+			return fmt.Errorf("failed to select account with ID %s: %w", transfer.To, err)
+		}
+		acc2 := new(Account)
+		err = surrealdb.Unmarshal(data, &acc2)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal account data: %w", err)
+		}
+		if acc2.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(acc2.Transactions), &transactions)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal transactions: %w", err)
+			}
+		}
+		transactionsReciever := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: amount.String()})
+		transactionsRecieverJSON, err2 := json.Marshal(transactionsReciever)
+		if err2 != nil {
+			return fmt.Errorf("failed to unmarshal transaction")
+		}
+		transactionsRecieverString := string(transactionsRecieverJSON)
+
+		balance, err = decimal.NewFromString(acc2.Balance)
+		if err != nil {
+			return err
+		}
+		changes = map[string]string{"balance": amount.Add(balance).String(), "name": acc2.Name, "pin": acc2.Pin, "transactions": transactionsRecieverString}
+		if _, err = db.Update(transfer.To, changes); err != nil {
+			return fmt.Errorf("failed to update account with ID %s: %w", transfer.To, err)
+		}
+		data, err = db.Select("user:zentralbank")
+		if err != nil {
+			return fmt.Errorf("failed to select account with ID %s: %w", "user:zentralbank", err)
+		}
+		acc3 := new(Account)
+		err = surrealdb.Unmarshal(data, &acc3)
+		if acc3.Transactions == "" {
+			transactions = []TransactionLog{}
+		} else {
+			err = json.Unmarshal([]byte(acc3.Transactions), &transactions)
+			if err != nil {
+				return fmt.Errorf("failed to unmarshal transactions: %w", err)
+			}
+		}
+		transactionsBank := append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: "zentralbank", Amount: amount.Mul(decimal.NewFromFloat(0.1)).String()})
+		transactionsBankJSON, err2 := json.Marshal(transactionsBank)
+		if err2 != nil {
+			return fmt.Errorf("failed to unmarshal transaction")
+		}
+		transactionsBankString := string(transactionsBankJSON)
+		balance, err = decimal.NewFromString(acc3.Balance)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal account data: %w", err)
+		}
+		changes = map[string]string{"balance": amount.Mul(decimal.NewFromFloat(0.1)).Add(balance).String(), "name": acc3.Name, "pin": acc3.Pin, "transactions": transactionsBankString}
+		if _, err = db.Update("user:zentralbank", changes); err != nil {
+			return fmt.Errorf("failed to update account with ID %s: %w", "user:zentralbank", err)
+		}
+		delete(failedAttempts, transfer.Pin)
+		return nil
+
 		fmt.Println("Transfer successful")
 
 	}
@@ -509,4 +600,42 @@ func reverseTransaction(from string, to string, amount string) {
 	}
 	fmt.Println("Transaction reversed successfully")
 
+}
+
+func currTime() string {
+	dt := time.Now()
+	return dt.Format("01-02-2006 15:04:05")
+}
+
+func logfile(transaction TransactionLog) error {
+	//create file if it doesn't exist
+	if _, err := os.Stat("transactions.csv"); errors.Is(err, os.ErrNotExist) {
+		os.Create("transactions.csv")
+		//create header
+		file, err := os.OpenFile("transactions.csv", os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		writer := csv.NewWriter(file)
+		defer writer.Flush()
+		data := []string{"Time", "From", "To", "Amount"}
+		err = writer.Write(data)
+		if err != nil {
+			return err
+		}
+	}
+	file, err := os.OpenFile("transactions.csv", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+	data := []string{transaction.Time, strings.TrimPrefix(transaction.From, "user:"), strings.TrimPrefix(transaction.From, "user:"), transaction.Amount}
+	err = writer.Write(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }
