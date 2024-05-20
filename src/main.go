@@ -53,6 +53,13 @@ func main() {
 }
 
 func currTime() string {
-	dt := time.Now()
+	locat, error := time.LoadLocation("Asia/Kolkata")
+	var dt time.Time
+	if error != nil {
+		dt = time.Now()
+		fmt.Println(error)
+	} else {
+		dt = time.Now().In(locat)
+	}
 	return dt.Format("01-02-2006 15:04:05")
 }
