@@ -53,7 +53,7 @@ func main() {
 }
 
 func currTime() string {
-	locat, error := time.LoadLocation("Asia/Kolkata")
+	locat, error := time.LoadLocation("Europe/Berlin")
 	var dt time.Time
 	if error != nil {
 		dt = time.Now()

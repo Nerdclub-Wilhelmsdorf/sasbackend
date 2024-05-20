@@ -717,7 +717,7 @@ func reverseTransaction(from string, to string, amount string) {
 }
 
 func currTime() string {
-	locat, error := time.LoadLocation("Asia/Kolkata")
+	locat, error := time.LoadLocation("Euroe/Berlin")
 	var dt time.Time
 	if error != nil {
 		dt = time.Now()
