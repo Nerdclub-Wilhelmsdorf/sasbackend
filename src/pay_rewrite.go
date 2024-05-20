@@ -90,9 +90,23 @@ func loadUser(id string) (Account, error) {
 	if err != nil {
 		return Account{}, fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	return *acc, nil
+	return Account{}, nil
 }
 
+/*
+data, err = db.Select(transfer.To)
+
+	if err != nil {
+		return fmt.Errorf("failed to select account with ID %s: %w", transfer.To, err)
+	}
+
+acc2 := new(Account)
+err = surrealdb.Unmarshal(data, &acc2)
+
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal account data: %w", err)
+	}
+*/
 func validateTransaction(payer Account, transfer Transfer) error {
 	if !CheckPasswordHash(transfer.Pin, payer.Pin) {
 		_, ok := failedAttempts[transfer.From]
