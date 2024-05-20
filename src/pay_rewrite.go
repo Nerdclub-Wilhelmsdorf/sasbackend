@@ -29,6 +29,14 @@ func transferMoney_2(transfer Transfer) error {
 		return fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
 	fmt.Println(acc1)
+	from := Account{
+		ID:   acc1.ID,
+		Name: acc1.Name,
+
+		Balance:      acc1.Balance,
+		Pin:          acc1.Pin,
+		Transactions: acc1.Transactions,
+	}
 	//from, err := loadUser(transfer.From)
 	if err != nil {
 		return fmt.Errorf("failed to load user with ID %s: %w", transfer.From, err)
