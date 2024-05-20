@@ -61,7 +61,9 @@ func transferMoney(transfer Transfer) error {
 		return fmt.Errorf("failed to convert balance to decimal: %w", err)
 	}
 	from.Balance = fromDecimal.Sub(transferDecimal.Mul(decimal.NewFromFloat(taxFactor))).String()
-	updatedTransaction, err := appendToLog(from, transfer)
+	logTransfer := transfer
+	logTransfer.Amount = transferDecimal.Mul(decimal.NewFromFloat(taxFactor)).String()
+	updatedTransaction, err := appendToLog(from, logTransfer)
 	if err != nil {
 		return fmt.Errorf("failed to append transaction to log: %w", err)
 	}
@@ -83,6 +85,7 @@ func transferMoney(transfer Transfer) error {
 	if updateUser(to.ID, to) != nil {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
+	//handle bank
 	bankDecimal, err := decimal.NewFromString(bank.Balance)
 	if err != nil {
 		return fmt.Errorf("failed to convert balance to decimal: %w", err)
@@ -126,20 +129,6 @@ func loadUser(id string) (Account, error) {
 	}, nil
 }
 
-/*
-data, err = db.Select(transfer.To)
-
-	if err != nil {
-		return fmt.Errorf("failed to select account with ID %s: %w", transfer.To, err)
-	}
-
-acc2 := new(Account)
-err = surrealdb.Unmarshal(data, &acc2)
-
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal account data: %w", err)
-	}
-*/
 func validateTransaction(payer Account, transfer Transfer) error {
 	if !CheckPasswordHash(transfer.Pin, payer.Pin) {
 		_, ok := failedAttempts[transfer.From]
