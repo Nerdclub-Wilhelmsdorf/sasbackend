@@ -11,19 +11,19 @@ import (
 
 func transferMoney_2(transfer Transfer) error {
 	from, err := loadUser(transfer.From)
-	//from, err := loadUser(transfer.From)
 	if err != nil {
 		return fmt.Errorf("failed to load user with ID %s: %w", transfer.From, err)
 	}
 	to, err := loadUser(transfer.To)
 	if err != nil {
-		return fmt.Errorf("failed to load user with ID %s: %w", transfer.From, err)
+		return fmt.Errorf("failed to load user with ID %s: %w", transfer.To, err)
 	}
-	bank, err := loadUser("zentralbank")
+	bank, err := loadUser("user:zentralbank")
 	if err != nil {
-		return fmt.Errorf("failed to load user with ID %s: %w", transfer.From, err)
+		return fmt.Errorf("failed to load user with ID %s: %w", "zentralbank", err)
 	}
-	if validateTransaction(from, transfer) != nil {
+	err = validateTransaction(from, transfer)
+	if err != nil {
 		return fmt.Errorf("failed to validate transaction: %w", err)
 	}
 	transferDecimal, err := decimal.NewFromString(transfer.Amount)
@@ -73,6 +73,7 @@ func transferMoney_2(transfer Transfer) error {
 		return fmt.Errorf("failed to update user: %w", err)
 	}
 	logfile(TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
+	delete(failedAttempts, transfer.Pin)
 	return nil
 }
 

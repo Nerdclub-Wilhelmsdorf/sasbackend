@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -43,12 +42,12 @@ func main() {
 	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
 		return key == "test", nil
 	}))
-
-	if err := e.StartTLS(":8443", "fullchain.pem", "privkey.pem"); err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
-
-	//e.Logger.Fatal(e.Start(":1213"))
+	/*
+		if err := e.StartTLS(":8443", "fullchain.pem", "privkey.pem"); err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	*/
+	e.Logger.Fatal(e.Start(":1213"))
 }
 
 func currTime() string {

@@ -128,3 +128,5 @@ method=POST, uri=/balanceCheck, status=200
 04-30-2024 22:20:16method=POST, uri=/pay, status=200
 04-30-2024 22:23:23method=POST, uri=/getLogs, status=200
 04-30-2024 22:25:59method=POST, uri=/getLogs, status=200
+05-20-2024 14:56:20method=POST, uri=/pay2, status=201
+05-20-2024 14:56:20method=POST, uri=/pay2, status=201
