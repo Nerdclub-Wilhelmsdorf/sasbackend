@@ -32,7 +32,7 @@ func getLogs(c echo.Context) error {
 
 func readLogs(ID string, PIN string) (string, error) {
 	fmt.Println(ID, PIN)
-	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	db, _ := surrealdb.New("https://localhost:8000/rpc")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",

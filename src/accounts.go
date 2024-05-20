@@ -37,7 +37,7 @@ func addAccount(c echo.Context) error {
 }
 
 func createAccount(user Account) (string, error) {
-	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	db, _ := surrealdb.New("https://localhost:8000/rpc")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
