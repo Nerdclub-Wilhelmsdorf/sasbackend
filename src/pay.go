@@ -105,7 +105,7 @@ func transferMoney(transfer Transfer) error {
 }
 
 func loadUser(id string) (Account, error) {
-	db, _ := surrealdb.New("https://saswdorf.de:8000")
+	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
@@ -176,7 +176,7 @@ func validateTransaction(payer Account, transfer Transfer) error {
 }
 
 func updateUser(id string, acc Account) error {
-	db, _ := surrealdb.New("https://saswdorf.de:8000")
+	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
