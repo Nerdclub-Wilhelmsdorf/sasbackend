@@ -1,5 +1,6 @@
-/*package main
+package main
 
+/*
 import (
 	"encoding/json"
 	"errors"
@@ -177,4 +178,4 @@ func transferMoney(transfer Transfer) error {
 	}
 	delete(failedAttempts, transfer.Pin)
 	return nil
-}
+}*/
