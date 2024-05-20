@@ -1,13 +1,39 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/shopspring/decimal"
+	"github.com/surrealdb/surrealdb.go"
 )
 
 func pay(c echo.Context) error {
+	paymentData := new(PaymentRoute)
+	if err := c.Bind(paymentData); err != nil {
+		return err
+	}
+	if paymentData.Acc1 == "" || paymentData.Acc2 == "" || paymentData.Amount == "" || paymentData.Pin == "" {
+		return c.String(http.StatusBadRequest, "missing parameters")
+	}
+	paymentData.Acc1 = strings.ReplaceAll(paymentData.Acc1, " ", "")
+	paymentData.Acc2 = strings.ReplaceAll(paymentData.Acc2, " ", "")
+	paymentData.Amount = strings.ReplaceAll(paymentData.Amount, " ", "")
+	paymentData.Amount = strings.ReplaceAll(paymentData.Amount, ",", ".")
+	paymentData.Pin = strings.ReplaceAll(paymentData.Pin, " ", "")
+
+	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
+	if err != nil {
+		return c.String(http.StatusCreated, err.Error())
+	}
+	return c.String(http.StatusOK, "payment successful")
+}
+func pay2(c echo.Context) error {
 	paymentData := new(PaymentRoute)
 	if err := c.Bind(paymentData); err != nil {
 		return err
@@ -27,8 +53,6 @@ func pay(c echo.Context) error {
 	}
 	return c.String(http.StatusOK, "payment successful")
 }
-
-/*
 func transferMoney(transfer Transfer) error {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
@@ -173,4 +197,3 @@ func transferMoney(transfer Transfer) error {
 	delete(failedAttempts, transfer.Pin)
 	return nil
 }
-*/
