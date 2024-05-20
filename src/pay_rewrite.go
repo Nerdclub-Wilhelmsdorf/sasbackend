@@ -85,12 +85,18 @@ func loadUser(id string) (Account, error) {
 	if err != nil {
 		return Account{}, fmt.Errorf("failed to select account with ID %s: %w", id, err)
 	}
-	acc := new(Account)
-	err = surrealdb.Unmarshal(data, &acc)
+	acc1 := new(Account)
+	err = surrealdb.Unmarshal(data, &acc1)
 	if err != nil {
 		return Account{}, fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	return Account{}, nil
+	return Account{
+		ID:           acc1.ID,
+		Name:         acc1.Name,
+		Balance:      acc1.Balance,
+		Pin:          acc1.Pin,
+		Transactions: acc1.Transactions,
+	}, nil
 }
 
 /*
