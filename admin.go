@@ -352,6 +352,7 @@ func HashPassword(password string) string {
 	bytes, _ := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes)
 }
+
 func getlogs() {
 	var id string
 	fmt.Println("Enter Account ID:")

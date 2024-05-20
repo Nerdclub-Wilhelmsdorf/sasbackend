@@ -1,16 +1,10 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
-	"slices"
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/shopspring/decimal"
-	"github.com/surrealdb/surrealdb.go"
 )
 
 func pay(c echo.Context) error {
@@ -27,13 +21,14 @@ func pay(c echo.Context) error {
 	paymentData.Amount = strings.ReplaceAll(paymentData.Amount, ",", ".")
 	paymentData.Pin = strings.ReplaceAll(paymentData.Pin, " ", "")
 
-	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
+	err := transferMoney_2(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
 	if err != nil {
 		return c.String(http.StatusCreated, err.Error())
 	}
 	return c.String(http.StatusOK, "payment successful")
 }
 
+/*
 func transferMoney(transfer Transfer) error {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
@@ -178,3 +173,4 @@ func transferMoney(transfer Transfer) error {
 	delete(failedAttempts, transfer.Pin)
 	return nil
 }
+*/
