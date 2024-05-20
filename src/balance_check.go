@@ -35,6 +35,13 @@ func balanceCheck(account BalanceCheck) (string, error) {
 		return "", fmt.Errorf("failed to connect to database: %w", err)
 	}
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": DATABASE_PASSWORD,
+	}); err != nil {
+		fmt.Println(err)
+		return "", err
+	}
 
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", fmt.Errorf("failed to use database: %w", err)

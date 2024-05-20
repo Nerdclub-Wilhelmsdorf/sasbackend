@@ -50,6 +50,14 @@ func verfiy_account(c echo.Context) error {
 func verifyAccount(ID string, PIN string) (AccountState, error) {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": DATABASE_PASSWORD,
+	}); err != nil {
+		fmt.Println(err)
+		return AccountStateError, err
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		return AccountStateError, fmt.Errorf("failed to use database: %w", err)
 	}

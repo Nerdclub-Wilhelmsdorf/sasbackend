@@ -34,6 +34,14 @@ func readLogs(ID string, PIN string) (string, error) {
 	fmt.Println(ID, PIN)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": DATABASE_PASSWORD,
+	}); err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", fmt.Errorf("failed to use database: %w", err)
 	}

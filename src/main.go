@@ -15,6 +15,8 @@ import (
 const taxRate = 0.1
 const taxFactor = 1.1
 
+const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
+
 func main() {
 	e := echo.New()
 	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")

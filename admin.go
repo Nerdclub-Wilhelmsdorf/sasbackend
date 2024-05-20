@@ -17,6 +17,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const PASSWORD_DATABASE = "IE76qzUk0t78JGhTz"
+
 type TransactionLog struct {
 	Time   string `json:"time"`
 	From   string `json:"from"`
@@ -182,6 +184,12 @@ func createAccount(user Account) (string, error) {
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", err
 	}
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		return "", fmt.Errorf("failed to sign in: %w", err)
+	}
 	// Insert user
 	data, err := db.Select(user.ID)
 	if err != nil {
@@ -232,7 +240,18 @@ func randomPin() string {
 
 func listAll() {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+
 	defer db.Close()
+	if _, err := db.Use("user", "user"); err != nil {
+		fmt.Println(err)
+	}
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
 	}
@@ -257,6 +276,13 @@ func delete() {
 	var id string
 	fmt.Scanln(&id)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer db.Close()
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
@@ -285,6 +311,13 @@ func changepin() {
 	fmt.Scanln(&pin)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
 	}
@@ -322,6 +355,13 @@ func verify() {
 	fmt.Println("Enter Student Number:")
 	fmt.Scanln(&name)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer db.Close()
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
@@ -369,6 +409,13 @@ func readLogs(ID string) (string, error) {
 	//fmt.Println(ID, PIN)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return "", err
+	}
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", fmt.Errorf("failed to use database: %w", err)
 	}
@@ -450,6 +497,14 @@ func transferMoney(transfer Transfer) error {
 func loadUser(id string) (Account, error) {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return Account{}, err
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		return Account{}, fmt.Errorf("failed to use database: %w", err)
 	}
@@ -489,6 +544,14 @@ func validateTransaction(transfer Transfer) error {
 func updateUser(id string, acc Account) error {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		return fmt.Errorf("failed to use database: %w", err)
 	}
@@ -545,6 +608,13 @@ func reversal() {
 func reverseTransaction(from string, to string, amount string) {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
 	}
