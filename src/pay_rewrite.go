@@ -172,7 +172,7 @@ func validateTransaction(payer Account, transfer Transfer) error {
 	if transferDecimal.LessThanOrEqual(decimal.Zero) {
 		return fmt.Errorf("bad amount")
 	}
-	if payerDecimal.Mul(decimal.NewFromFloat(taxFactor)).LessThan(transferDecimal) {
+if transferDecimal.Mul(decimal.NewFromFloat(taxFactor)).GreaterThan(payerDecimal) {
 		return fmt.Errorf("insufficient funds")
 	}
 	return nil
