@@ -19,8 +19,7 @@ func main() {
 	e := echo.New()
 	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
 	e.Use(middleware.Recover())
-	e.POST("/pay", pay2)
-	e.POST("/pay2", pay2)
+	e.POST("/pay", pay)
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "0")
 	})
