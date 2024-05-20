@@ -12,6 +12,9 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
+const taxRate = 0.1
+const taxFactor = 1.1
+
 func main() {
 	e := echo.New()
 	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
