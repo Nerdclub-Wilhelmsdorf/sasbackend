@@ -30,7 +30,7 @@ func checkBalance(c echo.Context) error {
 }
 
 func balanceCheck(account BalanceCheck) (string, error) {
-	db, err := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, err := surrealdb.New("https://saswdorf.de:8000")
 	if err != nil {
 		return "", fmt.Errorf("failed to connect to database: %w", err)
 	}

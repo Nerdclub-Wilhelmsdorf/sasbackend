@@ -179,7 +179,7 @@ func createAccountStruct(user *Account, name string, balance string, id string, 
 }
 
 func createAccount(user Account) (string, error) {
-	db, _ := surrealdb.New("https://sas:8000/rpc")
+	db, _ := surrealdb.New("https://sas:8000")
 	defer db.Close()
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", err
@@ -239,7 +239,7 @@ func randomPin() string {
 }
 
 func listAll() {
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 
 	defer db.Close()
 	if _, err := db.Use("user", "user"); err != nil {
@@ -275,7 +275,7 @@ func delete() {
 	fmt.Println("Enter Account ID:")
 	var id string
 	fmt.Scanln(&id)
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
 		"pass": PASSWORD_DATABASE,
@@ -309,7 +309,7 @@ func changepin() {
 	fmt.Scanln(&name)
 	fmt.Println("Enter New Pin:")
 	fmt.Scanln(&pin)
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
@@ -354,7 +354,7 @@ func verify() {
 	fmt.Scanln(&id)
 	fmt.Println("Enter Student Number:")
 	fmt.Scanln(&name)
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
 		"pass": PASSWORD_DATABASE,
@@ -407,7 +407,7 @@ func getlogs() {
 
 func readLogs(ID string) (string, error) {
 	//fmt.Println(ID, PIN)
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
@@ -495,7 +495,7 @@ func transferMoney(transfer Transfer) error {
 }
 
 func loadUser(id string) (Account, error) {
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
@@ -542,7 +542,7 @@ func validateTransaction(transfer Transfer) error {
 }
 
 func updateUser(id string, acc Account) error {
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
@@ -606,7 +606,7 @@ func reversal() {
 }
 
 func reverseTransaction(from string, to string, amount string) {
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",

@@ -48,7 +48,7 @@ func verfiy_account(c echo.Context) error {
 }
 
 func verifyAccount(ID string, PIN string) (AccountState, error) {
-	db, _ := surrealdb.New("https://saswdorf.de:8000/rpc")
+	db, _ := surrealdb.New("https://saswdorf.de:8000")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
