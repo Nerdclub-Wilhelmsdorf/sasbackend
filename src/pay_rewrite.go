@@ -108,6 +108,9 @@ func validateTransaction(payer Account, transfer Transfer) error {
 		}
 		return fmt.Errorf("wrong pin")
 	}
+	if transfer.From == transfer.To {
+		return fmt.Errorf("same account")
+	}
 	if failedAttempts[transfer.From] > 3 {
 		return fmt.Errorf("suspended")
 	}
