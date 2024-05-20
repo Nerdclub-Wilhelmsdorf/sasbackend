@@ -10,33 +10,7 @@ import (
 )
 
 func transferMoney_2(transfer Transfer) error {
-	db, _ := surrealdb.New("ws://localhost:8000/rpc")
-	defer db.Close()
-	if _, err := db.Use("user", "user"); err != nil {
-		return fmt.Errorf("failed to use database: %w", err)
-	}
-	data, err := db.Select(transfer.From)
-	if err != nil {
-		return fmt.Errorf("failed to select account with ID %s: %w", transfer.From, err)
-	}
-	_, err = db.Select(transfer.To)
-	if err != nil {
-		return fmt.Errorf("failed to select account with ID %s: %w", transfer.From, err)
-	}
-	acc1 := new(Account)
-	err = surrealdb.Unmarshal(data, &acc1)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal account data: %w", err)
-	}
-	fmt.Println(acc1)
-	from := Account{
-		ID:   acc1.ID,
-		Name: acc1.Name,
-
-		Balance:      acc1.Balance,
-		Pin:          acc1.Pin,
-		Transactions: acc1.Transactions,
-	}
+	from, err := loadUser(transfer.From)
 	//from, err := loadUser(transfer.From)
 	if err != nil {
 		return fmt.Errorf("failed to load user with ID %s: %w", transfer.From, err)
@@ -117,6 +91,7 @@ func loadUser(id string) (Account, error) {
 	if err != nil {
 		return Account{}, fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
+	fmt.Println(acc1)
 	return Account{
 		ID:           acc1.ID,
 		Name:         acc1.Name,
