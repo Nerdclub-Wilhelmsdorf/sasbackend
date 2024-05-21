@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -53,7 +52,7 @@ func currTime() string {
 
 func Authorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		fmt.Println("Bearer " + token)
+		//fmt.Println("Bearer " + token)
 		if c.GetHeader("Authorization") != "Bearer "+token {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		}
