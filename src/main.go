@@ -17,7 +17,6 @@ const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
 
 func main() {
 	r := gin.Default()
-	r.Use(cors.Default())
 	r.Use(gin.Recovery())
 	file, fileErr := os.Create("log")
 	if fileErr != nil {
@@ -26,7 +25,15 @@ func main() {
 	gin.DefaultWriter = file
 
 	r.Use(Authorize())
-	r.Use(CORSMiddleware())
+	config := cors.DefaultConfig()
+	config.AllowAllOrigins = true
+	config.AllowMethods = []string{"POST", "GET", "PUT", "OPTIONS"}
+	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"}
+	config.ExposeHeaders = []string{"Content-Length"}
+	config.AllowCredentials = true
+	config.MaxAge = 12 * time.Hour
+
+	r.Use(cors.New(config))
 	r.POST("/pay", pay)
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "0")
@@ -38,7 +45,7 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
-	//r.Run(":8080")
+	r.Run(":8080")
 }
 
 func currTime() string {
