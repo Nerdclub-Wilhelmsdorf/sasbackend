@@ -14,6 +14,8 @@ const taxRate = 0.1
 const taxFactor = 1.1
 const token = "test"
 
+const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
+
 func main() {
 	r := gin.Default()
 	r.Use(gin.Recovery())
@@ -39,7 +41,14 @@ func main() {
 }
 
 func currTime() string {
-	dt := time.Now()
+	locat, error := time.LoadLocation("Europe/Berlin")
+	var dt time.Time
+	if error != nil {
+		dt = time.Now()
+		fmt.Println(error)
+	} else {
+		dt = time.Now().In(locat)
+	}
 	return dt.Format("01-02-2006 15:04:05")
 }
 

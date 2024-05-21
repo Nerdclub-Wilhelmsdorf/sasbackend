@@ -110,6 +110,14 @@ func transferMoney(transfer Transfer) error {
 func loadUser(id string) (Account, error) {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": DATABASE_PASSWORD,
+	}); err != nil {
+		fmt.Println(err)
+		return Account{}, err
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		return Account{}, fmt.Errorf("failed to use database: %w", err)
 	}
@@ -173,6 +181,14 @@ func validateTransaction(payer Account, transfer Transfer) error {
 func updateUser(id string, acc Account) error {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": DATABASE_PASSWORD,
+	}); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		return fmt.Errorf("failed to use database: %w", err)
 	}

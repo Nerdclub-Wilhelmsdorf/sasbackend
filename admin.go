@@ -17,6 +17,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const PASSWORD_DATABASE = "IE76qzUk0t78JGhTz"
+
 type TransactionLog struct {
 	Time   string `json:"time"`
 	From   string `json:"from"`
@@ -30,6 +32,13 @@ type Account struct {
 	Balance      string `json:"balance"`
 	Pin          string `json:"pin"`
 	Transactions string `json:"transactions"`
+}
+
+type Transfer struct {
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Amount string `json:"amount"`
+	Pin    string `json:"pin"`
 }
 
 func main() {
@@ -175,8 +184,17 @@ func createAccount(user Account) (string, error) {
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", err
 	}
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		return "", fmt.Errorf("failed to sign in: %w", err)
+	}
 	// Insert user
 	data, err := db.Select(user.ID)
+	if err != nil {
+		fmt.Print("error")
+	}
 	selectedUser := new(Account)
 	err = surrealdb.Unmarshal(data, &selectedUser)
 	if err == nil {
@@ -222,7 +240,18 @@ func randomPin() string {
 
 func listAll() {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+
 	defer db.Close()
+	if _, err := db.Use("user", "user"); err != nil {
+		fmt.Println(err)
+	}
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
 	}
@@ -247,6 +276,13 @@ func delete() {
 	var id string
 	fmt.Scanln(&id)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer db.Close()
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
@@ -262,15 +298,6 @@ func delete() {
 	main()
 }
 
-/*
-	func usecsv() {
-		file, err := os.Open("konten.csv")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-}
-*/
 func changepin() {
 	var id string
 	var pin string
@@ -284,6 +311,13 @@ func changepin() {
 	fmt.Scanln(&pin)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
 	}
@@ -321,6 +355,13 @@ func verify() {
 	fmt.Println("Enter Student Number:")
 	fmt.Scanln(&name)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
 	defer db.Close()
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
@@ -368,6 +409,13 @@ func readLogs(ID string) (string, error) {
 	//fmt.Println(ID, PIN)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return "", err
+	}
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", fmt.Errorf("failed to use database: %w", err)
 	}
@@ -399,92 +447,149 @@ func transfer() {
 	fmt.Scanln(&to)
 	fmt.Println("Enter Amount:")
 	fmt.Scanln(&amount)
-	transferMoney("user:"+from, "user:"+to, amount)
+	transferMoney(Transfer{From: "user:" + from, To: "user:" + to, Amount: amount, Pin: ""})
 }
 
-func transferMoney(from string, to string, amount string) {
+func transferMoney(transfer Transfer) error {
+	from, err := loadUser(transfer.From)
+	if err != nil {
+		return fmt.Errorf("failed to load user with ID %s: %w", transfer.From, err)
+	}
+	to, err := loadUser(transfer.To)
+	if err != nil {
+		return fmt.Errorf("failed to load user with ID %s: %w", transfer.To, err)
+	}
+	err = validateTransaction(transfer)
+	if err != nil {
+		return fmt.Errorf("failed to validate transaction: %w", err)
+	}
+	transferDecimal, err := decimal.NewFromString(transfer.Amount)
+	if err != nil {
+		return fmt.Errorf("failed to convert transfer amount to decimal: %w", err)
+	}
+
+	//handle from
+	updatedTransaction, err := appendToLog(from, transfer)
+	if err != nil {
+		return fmt.Errorf("failed to append transaction to log: %w", err)
+	}
+	from.Transactions = updatedTransaction.Transactions
+	if updateUser(from.ID, from) != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	//handle to
+	toDecimal, err := decimal.NewFromString(to.Balance)
+	if err != nil {
+		return fmt.Errorf("failed to convert balance to decimal: %w", err)
+	}
+	to.Balance = toDecimal.Add(transferDecimal).String()
+	updatedTransaction, err = appendToLog(to, transfer)
+	if err != nil {
+		return fmt.Errorf("failed to append transaction to log: %w", err)
+	}
+	to.Transactions = updatedTransaction.Transactions
+	if updateUser(to.ID, to) != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	return nil
+}
+
+func loadUser(id string) (Account, error) {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return Account{}, err
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
-		fmt.Println(err)
+		return Account{}, fmt.Errorf("failed to use database: %w", err)
 	}
-	data, err := db.Select(from)
+	data, err := db.Select(id)
 	if err != nil {
-		fmt.Println(err)
+		return Account{}, fmt.Errorf("failed to select account with ID %s: %w", id, err)
 	}
-	selectedUser := new(Account)
-	err = surrealdb.Unmarshal(data, &selectedUser)
+	acc1 := new(Account)
+	err = surrealdb.Unmarshal(data, &acc1)
 	if err != nil {
-		fmt.Println(err)
+		return Account{}, fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	balance, _ := decimal.NewFromString(selectedUser.Balance)
-	amountDec, _ := decimal.NewFromString(amount)
-	if amountDec.GreaterThan(balance) {
-		fmt.Println("Insufficient funds")
+	fmt.Println(acc1)
+	return Account{
+		ID:           acc1.ID,
+		Name:         acc1.Name,
+		Balance:      acc1.Balance,
+		Pin:          acc1.Pin,
+		Transactions: acc1.Transactions,
+	}, nil
+}
+
+func validateTransaction(transfer Transfer) error {
+	if transfer.From == transfer.To {
+		return fmt.Errorf("same account")
+	}
+	transferDecimal, err := decimal.NewFromString(transfer.Amount)
+	if err != nil {
+		return fmt.Errorf("failed to convert transfer amount to decimal: %w", err)
+	}
+	if transferDecimal.LessThanOrEqual(decimal.Zero) {
+		return fmt.Errorf("bad amount")
+	}
+	return nil
+}
+
+func updateUser(id string, acc Account) error {
+	db, _ := surrealdb.New("ws://localhost:8000/rpc")
+	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	if _, err := db.Use("user", "user"); err != nil {
+		return fmt.Errorf("failed to use database: %w", err)
+	}
+	data, err := db.Select(id)
+	if err != nil {
+		return fmt.Errorf("failed to select account with ID %s: %w", id, err)
+	}
+	acc2 := new(Account)
+	err = surrealdb.Unmarshal(data, &acc2)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal account data: %w", err)
+	}
+
+	changes := map[string]string{"balance": acc.Balance, "name": acc.Name, "pin": acc.Pin, "transactions": acc.Transactions}
+	if _, err = db.Update(id, changes); err != nil {
+		return fmt.Errorf("failed to update account with ID %s: %w", id, err)
+	}
+	return nil
+}
+
+func appendToLog(acc1 Account, transfer Transfer) (Account, error) {
+	var transactions []TransactionLog
+	if acc1.Transactions == "" {
+		transactions = []TransactionLog{}
 	} else {
-		var transactions []TransactionLog
-		if selectedUser.Transactions == "" {
-			transactions = []TransactionLog{}
-		} else {
-			err = json.Unmarshal([]byte(selectedUser.Transactions), &transactions)
-			if err != nil {
-				return
-			}
-		}
-		err = logfile(TransactionLog{Time: currTime(), From: from, To: to, Amount: amount})
+		err := json.Unmarshal([]byte(acc1.Transactions), &transactions)
 		if err != nil {
-			return
+			return Account{}, fmt.Errorf("failed to unmarshal transactions: %w", err)
 		}
-		fromFormatted, _ := strings.CutPrefix(from, "user:")
-		toFormatted, _ := strings.CutPrefix(to, "user:")
-		transactions = append(transactions, TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
-		transactionsJSON, err := json.Marshal(transactions)
-		if err != nil {
-			return
-		}
-		transactionsString := string(transactionsJSON)
-
-		changes := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Sub(amountDec).String()), "transactions": transactionsString}
-		if _, err = db.Update(selectedUser.ID, changes); err != nil {
-			panic(err)
-		}
-		data, err = db.Select(to)
-		if err != nil {
-			fmt.Println(err)
-		}
-		selectedUser = new(Account)
-		err = surrealdb.Unmarshal(data, &selectedUser)
-		if err != nil {
-			fmt.Println(err)
-		}
-		balance, _ = decimal.NewFromString(selectedUser.Balance)
-		if selectedUser.Transactions == "" {
-			transactions = []TransactionLog{}
-		} else {
-			err = json.Unmarshal([]byte(selectedUser.Transactions), &transactions)
-			if err != nil {
-				return
-			}
-		}
-		err = logfile(TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
-		if err != nil {
-			return
-		}
-		transactions = append(transactions, TransactionLog{Time: currTime(), From: fromFormatted, To: toFormatted, Amount: amount})
-		transactionsJSON, err = json.Marshal(transactions)
-		if err != nil {
-			return
-		}
-		transactionsString = string(transactionsJSON)
-
-		change := map[string]string{"pin": selectedUser.Pin, "name": selectedUser.Name, "balance": (balance.Add(amountDec).String()), "transactions": transactionsString}
-		if _, err = db.Update(selectedUser.ID, change); err != nil {
-			panic(err)
-		}
-
-		fmt.Println("Transfer successful")
-
 	}
+	transactions = append(transactions, TransactionLog{Time: currTime(), From: transfer.From, To: transfer.To, Amount: transfer.Amount})
+	transactionsJSON, err := json.Marshal(transactions)
+	if err != nil {
+		return Account{}, fmt.Errorf("failed to marshal transactions: %w", err)
+	}
+	transactionsString := string(transactionsJSON)
+	acc1.Transactions = transactionsString
+	return acc1, nil
 }
 
 func reversal() {
@@ -503,6 +608,13 @@ func reversal() {
 func reverseTransaction(from string, to string, amount string) {
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
+	if _, err := db.Signin(map[string]interface{}{
+		"user": "guffe",
+		"pass": PASSWORD_DATABASE,
+	}); err != nil {
+		fmt.Println(err)
+	}
+
 	if _, err := db.Use("user", "user"); err != nil {
 		fmt.Println(err)
 	}
@@ -605,7 +717,14 @@ func reverseTransaction(from string, to string, amount string) {
 }
 
 func currTime() string {
-	dt := time.Now()
+	locat, error := time.LoadLocation("Euroe/Berlin")
+	var dt time.Time
+	if error != nil {
+		dt = time.Now()
+		fmt.Println(error)
+	} else {
+		dt = time.Now().In(locat)
+	}
 	return dt.Format("01-02-2006 15:04:05")
 }
 
