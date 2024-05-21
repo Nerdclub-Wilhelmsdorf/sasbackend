@@ -56,7 +56,6 @@ func verifyAccount(ID string, PIN string) (AccountState, error) {
 		"user": "guffe",
 		"pass": DATABASE_PASSWORD,
 	}); err != nil {
-		fmt.Println(err)
 		return AccountStateError, err
 	}
 

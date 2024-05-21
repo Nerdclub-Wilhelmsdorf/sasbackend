@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -21,7 +20,6 @@ func main() {
 	r.Use(gin.Recovery())
 	file, fileErr := os.Create("log")
 	if fileErr != nil {
-		fmt.Println(fileErr)
 		return
 	}
 	gin.DefaultWriter = file
@@ -45,7 +43,6 @@ func currTime() string {
 	var dt time.Time
 	if error != nil {
 		dt = time.Now()
-		fmt.Println(error)
 	} else {
 		dt = time.Now().In(locat)
 	}

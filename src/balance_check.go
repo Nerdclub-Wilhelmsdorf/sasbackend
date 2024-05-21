@@ -23,7 +23,6 @@ func checkBalance(c *gin.Context) {
 	balanceData.Acc1 = strings.ReplaceAll(balanceData.Acc1, " ", "")
 	balanceData.Pin = strings.ReplaceAll(balanceData.Pin, " ", "")
 
-	fmt.Println(balanceData.Acc1, balanceData.Pin)
 	balance, err := balanceCheck(BalanceCheck{ID: "user:" + balanceData.Acc1, Pin: balanceData.Pin})
 	if err != nil {
 		c.String(http.StatusCreated, err.Error())
@@ -42,14 +41,12 @@ func balanceCheck(account BalanceCheck) (string, error) {
 		"user": "guffe",
 		"pass": DATABASE_PASSWORD,
 	}); err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
 	if _, err := db.Use("user", "user"); err != nil {
 		return "", fmt.Errorf("failed to use database: %w", err)
 	}
-	fmt.Print(account.ID)
 	data, err := db.Select(account.ID)
 	if err != nil {
 		return "", fmt.Errorf("failed to select account with ID %s: %w", account.ID, err)
@@ -58,7 +55,6 @@ func balanceCheck(account BalanceCheck) (string, error) {
 	acc := new(Account)
 	err = surrealdb.Unmarshal(data, &acc)
 	if err != nil {
-		fmt.Println(data)
 		return "", fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
 	if failedAttempts[account.ID] > 3 {

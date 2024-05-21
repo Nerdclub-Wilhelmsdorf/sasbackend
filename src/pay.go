@@ -114,7 +114,6 @@ func loadUser(id string) (Account, error) {
 		"user": "guffe",
 		"pass": DATABASE_PASSWORD,
 	}); err != nil {
-		fmt.Println(err)
 		return Account{}, err
 	}
 
@@ -130,7 +129,6 @@ func loadUser(id string) (Account, error) {
 	if err != nil {
 		return Account{}, fmt.Errorf("failed to unmarshal account data: %w", err)
 	}
-	fmt.Println(acc1)
 	return Account{
 		ID:           acc1.ID,
 		Name:         acc1.Name,
@@ -185,7 +183,7 @@ func updateUser(id string, acc Account) error {
 		"user": "guffe",
 		"pass": DATABASE_PASSWORD,
 	}); err != nil {
-		fmt.Println(err)
+
 		return err
 	}
 

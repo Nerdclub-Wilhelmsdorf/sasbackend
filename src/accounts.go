@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -47,7 +46,6 @@ func createAccount(user Account) (string, error) {
 		"user": "guffe",
 		"pass": DATABASE_PASSWORD,
 	}); err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -77,7 +75,6 @@ func createAccount(user Account) (string, error) {
 		return "", err
 	}
 	if user.Name == selectedUser.Name {
-		fmt.Println("User with ID: " + selectedUser.ID + " created successfully.")
 		return selectedUser.ID, nil
 	} else {
 		return "", errors.New("failed to create user")

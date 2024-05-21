@@ -24,7 +24,6 @@ func getLogs(c *gin.Context) {
 	}
 	logs.Acc = strings.ReplaceAll(logs.Acc, " ", "")
 	logs.Pin = strings.ReplaceAll(logs.Pin, " ", "")
-	fmt.Println(logs)
 	getLogs, err := readLogs("user:"+logs.Acc, logs.Pin)
 	if err != nil {
 		c.String(http.StatusCreated, err.Error())
@@ -34,14 +33,12 @@ func getLogs(c *gin.Context) {
 }
 
 func readLogs(ID string, PIN string) (string, error) {
-	fmt.Println(ID, PIN)
 	db, _ := surrealdb.New("ws://localhost:8000/rpc")
 	defer db.Close()
 	if _, err := db.Signin(map[string]interface{}{
 		"user": "guffe",
 		"pass": DATABASE_PASSWORD,
 	}); err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 
@@ -63,7 +60,6 @@ func readLogs(ID string, PIN string) (string, error) {
 	if failedAttempts[ID] > 3 {
 		return "", fmt.Errorf("suspended")
 	}
-	fmt.Println(acc1.Transactions)
 	if acc1.Transactions == "" {
 		return "", nil
 	} else {
