@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -11,7 +12,7 @@ import (
 const taxRate = 0.1
 const taxFactor = 1.1
 
-var token = os.Getenv("SERVER_TOKEN")
+var token string = os.Getenv("SERVER_TOKEN")
 
 var DATABASE_PASSWORD = os.Getenv("SERVER_DBPIN")
 
@@ -37,7 +38,6 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
-	r.Run(":8080")
 }
 
 func currTime() string {
@@ -53,6 +53,7 @@ func currTime() string {
 
 func Authorize() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println("Bearer " + token)
 		if c.GetHeader("Authorization") != "Bearer "+token {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		}
