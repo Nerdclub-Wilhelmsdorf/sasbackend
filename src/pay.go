@@ -7,18 +7,20 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 	"github.com/shopspring/decimal"
 	"github.com/surrealdb/surrealdb.go"
 )
 
-func pay(c echo.Context) error {
+func pay(c *gin.Context) {
 	paymentData := new(PaymentRoute)
 	if err := c.Bind(paymentData); err != nil {
-		return err
+		c.String(http.StatusCreated, "Error getting data")
+		return
 	}
 	if paymentData.Acc1 == "" || paymentData.Acc2 == "" || paymentData.Amount == "" || paymentData.Pin == "" {
-		return c.String(http.StatusBadRequest, "missing parameters")
+		c.String(http.StatusBadRequest, "missing parameters")
+		return
 	}
 	paymentData.Acc1 = strings.ReplaceAll(paymentData.Acc1, " ", "")
 	paymentData.Acc2 = strings.ReplaceAll(paymentData.Acc2, " ", "")
@@ -28,9 +30,10 @@ func pay(c echo.Context) error {
 
 	err := transferMoney(Transfer{From: "user:" + paymentData.Acc1, To: "user:" + paymentData.Acc2, Amount: paymentData.Amount, Pin: paymentData.Pin})
 	if err != nil {
-		return c.String(http.StatusCreated, err.Error())
+		c.String(http.StatusCreated, err.Error())
+		return
 	}
-	return c.String(http.StatusOK, "payment successful")
+	c.String(http.StatusOK, "payment successful")
 }
 
 func transferMoney(transfer Transfer) error {

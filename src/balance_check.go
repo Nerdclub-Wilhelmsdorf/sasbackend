@@ -6,17 +6,19 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 	"github.com/surrealdb/surrealdb.go"
 )
 
-func checkBalance(c echo.Context) error {
+func checkBalance(c *gin.Context) {
 	balanceData := new(BalanceRoute)
 	if err := c.Bind(balanceData); err != nil {
-		return c.String(http.StatusCreated, err.Error())
+		c.String(http.StatusCreated, err.Error())
+		return
 	}
 	if balanceData.Acc1 == "" || balanceData.Pin == "" {
-		return c.String(http.StatusBadRequest, "missing parameters")
+		c.String(http.StatusBadRequest, "missing parameters")
+		return
 	}
 	balanceData.Acc1 = strings.ReplaceAll(balanceData.Acc1, " ", "")
 	balanceData.Pin = strings.ReplaceAll(balanceData.Pin, " ", "")
@@ -24,9 +26,10 @@ func checkBalance(c echo.Context) error {
 	fmt.Println(balanceData.Acc1, balanceData.Pin)
 	balance, err := balanceCheck(BalanceCheck{ID: "user:" + balanceData.Acc1, Pin: balanceData.Pin})
 	if err != nil {
-		return c.String(http.StatusCreated, err.Error())
+		c.String(http.StatusCreated, err.Error())
+		return
 	}
-	return c.String(http.StatusOK, balance)
+	c.String(http.StatusOK, balance)
 }
 
 func balanceCheck(account BalanceCheck) (string, error) {

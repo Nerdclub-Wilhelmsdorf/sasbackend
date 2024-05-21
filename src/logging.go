@@ -8,26 +8,29 @@ import (
 	"os"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 	"github.com/surrealdb/surrealdb.go"
 )
 
-func getLogs(c echo.Context) error {
+func getLogs(c *gin.Context) {
 	logs := new(GetLogs)
 	if err := c.Bind(logs); err != nil {
-		return err
+		c.String(http.StatusCreated, "Error getting data")
+		return
 	}
 	if logs.Acc == "" || logs.Pin == "" {
-		return c.String(http.StatusBadRequest, "missing parameters")
+		c.String(http.StatusBadRequest, "missing parameters")
+		return
 	}
 	logs.Acc = strings.ReplaceAll(logs.Acc, " ", "")
 	logs.Pin = strings.ReplaceAll(logs.Pin, " ", "")
 	fmt.Println(logs)
 	getLogs, err := readLogs("user:"+logs.Acc, logs.Pin)
 	if err != nil {
-		return c.String(http.StatusCreated, err.Error())
+		c.String(http.StatusCreated, err.Error())
+		return
 	}
-	return c.JSON(http.StatusOK, getLogs)
+	c.JSON(http.StatusOK, getLogs)
 }
 
 func readLogs(ID string, PIN string) (string, error) {

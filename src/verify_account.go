@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 	"github.com/surrealdb/surrealdb.go"
 )
 
@@ -20,30 +20,32 @@ const (
 	FailedVerification
 )
 
-func verfiy_account(c echo.Context) error {
+func verfiy_account(c *gin.Context) {
 	accData := new(AccountRoute)
 	if err := c.Bind(accData); err != nil {
-		return c.String(http.StatusCreated, err.Error())
+		c.String(http.StatusCreated, err.Error())
+		return
 	}
 	if accData.NAME == "" || accData.PIN == "" {
-		return c.String(http.StatusBadRequest, "missing parameters")
+		c.String(http.StatusBadRequest, "missing parameters")
+		return
 	}
 	accData.NAME = strings.ReplaceAll(accData.NAME, " ", "")
 	accData.PIN = strings.ReplaceAll(accData.PIN, " ", "")
 	acc, _ := verifyAccount("user:"+accData.NAME, accData.PIN)
 	switch acc {
 	case Suspended:
-		return c.String(http.StatusOK, "account suspended")
+		c.String(http.StatusOK, "account suspended")
 	case Verified:
-		return c.String(http.StatusOK, "account verified")
+		c.String(http.StatusOK, "account verified")
 	case DoesNotExist:
-		return c.String(http.StatusOK, "account does not exist")
+		c.String(http.StatusOK, "account does not exist")
 	case AccountStateError:
-		return c.String(http.StatusOK, "error verifying account")
+		c.String(http.StatusOK, "error verifying account")
 	case FailedVerification:
-		return c.String(http.StatusOK, "failed to verify account")
+		c.String(http.StatusOK, "failed to verify account")
 	default:
-		return c.String(http.StatusOK, "server error")
+		c.String(http.StatusOK, "server error")
 	}
 }
 

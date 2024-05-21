@@ -6,34 +6,38 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/gin-gonic/gin"
 	"github.com/surrealdb/surrealdb.go"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func addAccount(c echo.Context) error {
+func addAccount(c *gin.Context) {
 	accountData := new(AccountRoute)
 	if err := c.Bind(accountData); err != nil {
-		return c.String(http.StatusCreated, "Error getting data")
+		c.String(http.StatusCreated, "Error getting data")
+		return
 	}
 	if accountData.NAME == "" || accountData.PIN == "" {
-		return c.String(http.StatusBadRequest, "missing parameters")
+		c.String(http.StatusBadRequest, "missing parameters")
+		return
 	}
 	accountData.NAME = strings.ReplaceAll(accountData.NAME, " ", "")
 	accountData.PIN = strings.ReplaceAll(accountData.PIN, " ", "")
 
 	passrd, err := HashPassword(accountData.PIN)
 	if err != nil {
-		return c.String(http.StatusCreated, "Error hashing password")
+		c.String(http.StatusCreated, "Error hashing password")
+		return
 	}
 
 	accountCreationData := Account{Pin: passrd, Name: accountData.NAME, Balance: "0", Transactions: ""}
 	id, err := createAccount(accountCreationData)
 	if err != nil {
-		return c.String(http.StatusCreated, err.Error())
+		c.String(http.StatusCreated, err.Error())
+		return
 	}
 	id = id[len("user:"):]
-	return c.String(http.StatusOK, id)
+	c.String(http.StatusOK, id)
 }
 
 func createAccount(user Account) (string, error) {

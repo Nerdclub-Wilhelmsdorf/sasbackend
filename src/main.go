@@ -2,55 +2,51 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"golang.org/x/crypto/acme/autocert"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 const taxRate = 0.1
 const taxFactor = 1.1
+const token = "test"
 
 func main() {
-	e := echo.New()
-	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
-	e.Use(middleware.Recover())
-	e.POST("/pay", pay)
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "0")
+	r := gin.Default()
+	r.Use(gin.Recovery())
+	file, fileErr := os.Create("log")
+	if fileErr != nil {
+		fmt.Println(fileErr)
+		return
+	}
+	gin.DefaultWriter = file
+
+	r.Use(cors.Default())
+	r.Use(Authorize())
+
+	r.POST("/pay", pay)
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "0")
 	})
-	f, err := os.OpenFile("logfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		panic(fmt.Sprintf("error opening file: %v", err))
-	}
-	defer f.Close()
-	e.POST("/addAccount", addAccount)
-	e.POST("/balanceCheck", checkBalance)
-	e.POST("/getLogs", getLogs)
-	e.POST("/verify", verfiy_account)
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: currTime() + "method=${method}, uri=${uri}, status=${status}\n",
-		Output: f,
-	}))
-	e.Use(middleware.CORS())
-	e.Use(middleware.Secure())
-
-	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
-		return key == "test", nil
-	}))
-
-	if err := e.StartTLS(":8443", "fullchain.pem", "privkey.pem"); err != http.ErrServerClosed {
-		log.Fatal(err)
-	}
-
-	//e.Logger.Fatal(e.Start(":1213"))
+	r.POST("/addAccount", addAccount)
+	r.POST("/balanceCheck", checkBalance)
+	r.POST("/getLogs", getLogs)
+	r.POST("/verify", verfiy_account)
+	r.Run(":1312")
 }
 
 func currTime() string {
 	dt := time.Now()
 	return dt.Format("01-02-2006 15:04:05")
+}
+
+func Authorize() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.GetHeader("Authorization") != "Bearer "+token {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		}
+	}
 }

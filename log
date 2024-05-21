@@ -1,0 +1,9 @@
+[GIN-debug] POST   /pay                      --> main.pay (6 handlers)
+[GIN-debug] GET    /                         --> main.main.func1 (6 handlers)
+[GIN-debug] POST   /addAccount               --> main.addAccount (6 handlers)
+[GIN-debug] POST   /balanceCheck             --> main.checkBalance (6 handlers)
+[GIN-debug] POST   /getLogs                  --> main.getLogs (6 handlers)
+[GIN-debug] POST   /verify                   --> main.verfiy_account (6 handlers)
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on :1312
