@@ -10,9 +10,10 @@ import (
 
 const taxRate = 0.1
 const taxFactor = 1.1
-const token = "test"
 
-const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
+var token = os.Getenv("SERVER_TOKEN")
+
+var DATABASE_PASSWORD = os.Getenv("SERVER_DBPIN")
 
 func main() {
 	r := gin.Default()
