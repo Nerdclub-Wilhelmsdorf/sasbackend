@@ -37,7 +37,7 @@ func main() {
 	r.POST("/balanceCheck", checkBalance)
 	r.POST("/getLogs", getLogs)
 	r.POST("/verify", verfiy_account)
-	r.Run(":1312")
+	r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
 }
 
 func currTime() string {
