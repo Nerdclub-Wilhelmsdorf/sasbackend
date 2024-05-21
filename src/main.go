@@ -17,20 +17,13 @@ const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
 
 func main() {
 	r := gin.Default()
+	r.Use(cors.Default())
 	r.Use(gin.Recovery())
 	file, fileErr := os.Create("log")
 	if fileErr != nil {
 		return
 	}
 	gin.DefaultWriter = file
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://sas.lenblum.de"},
-		AllowMethods:     []string{"POST", "GET"},
-		AllowHeaders:     []string{"Origin"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
 
 	r.Use(Authorize())
 	r.Use(CORSMiddleware())
