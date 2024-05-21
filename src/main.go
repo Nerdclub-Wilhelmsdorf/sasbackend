@@ -35,8 +35,8 @@ func main() {
 	r.POST("/verify", verfiy_account)
 
 	gin.SetMode(gin.ReleaseMode)
-	//r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
-	r.Run(":8080")
+	r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
+	//r.Run(":8080")
 }
 
 func currTime() string {
