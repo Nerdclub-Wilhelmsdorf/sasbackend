@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +23,7 @@ func main() {
 	}
 	gin.DefaultWriter = file
 
-	r.Use(cors.Default())
+	//r.Use(cors.Default())
 	r.Use(Authorize())
 
 	r.POST("/pay", pay)
