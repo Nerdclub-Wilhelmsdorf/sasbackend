@@ -35,6 +35,8 @@ func main() {
 	r.POST("/balanceCheck", checkBalance)
 	r.POST("/getLogs", getLogs)
 	r.POST("/verify", verfiy_account)
+
+	gin.SetMode(gin.ReleaseMode)
 	r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
 }
 
