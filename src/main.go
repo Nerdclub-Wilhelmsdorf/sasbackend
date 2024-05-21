@@ -5,7 +5,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +16,7 @@ const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
 
 func main() {
 	r := gin.Default()
+	r.Use(CORSMiddleware())
 	r.Use(gin.Recovery())
 	file, fileErr := os.Create("log")
 	if fileErr != nil {
@@ -25,15 +25,6 @@ func main() {
 	gin.DefaultWriter = file
 
 	r.Use(Authorize())
-	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
-	config.AllowMethods = []string{"POST", "GET", "PUT", "OPTIONS"}
-	config.AllowHeaders = []string{"Origin", "Content-Type", "Authorization", "Accept", "User-Agent", "Cache-Control", "Pragma"}
-	config.ExposeHeaders = []string{"Content-Length"}
-	config.AllowCredentials = true
-	config.MaxAge = 12 * time.Hour
-
-	r.Use(cors.New(config))
 	r.POST("/pay", pay)
 	r.GET("/", func(c *gin.Context) {
 		c.String(http.StatusOK, "0")
@@ -68,7 +59,7 @@ func Authorize() gin.HandlerFunc {
 }
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://sas.lenblum.de")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
