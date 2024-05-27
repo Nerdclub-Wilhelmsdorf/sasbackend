@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -10,7 +11,7 @@ import (
 
 const taxRate = 0.1
 const taxFactor = 1.1
-const token = "test"
+const token = "W_97xyk8G]]w"
 
 const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
 
@@ -35,7 +36,8 @@ func main() {
 	r.POST("/verify", verfiy_account)
 
 	gin.SetMode(gin.ReleaseMode)
-	r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
+	err := r.RunTLS(":8443", "fullchain.pem", "privkey.pem")
+	fmt.Println(err)
 }
 
 func currTime() string {
