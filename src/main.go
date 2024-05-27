@@ -2,12 +2,18 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/oschwald/geoip2-golang"
+
 	"github.com/gin-gonic/gin"
 )
+
+const geoblock = true
 
 const taxRate = 0.1
 const taxFactor = 1.1
@@ -24,7 +30,9 @@ func main() {
 		return
 	}
 	gin.DefaultWriter = file
-
+	if geoblock {
+		r.Use(Geoblock())
+	}
 	r.Use(Authorize())
 	r.POST("/pay", pay)
 	r.GET("/", func(c *gin.Context) {
@@ -72,5 +80,32 @@ func CORSMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
+	}
+}
+func Geoblock() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db, err := geoip2.Open("GeoLite2-Country.mmdb")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer db.Close()
+		// If you are using strings that may be invalid, check that ip is not nil
+		ip := net.ParseIP(c.ClientIP())
+		record, err := db.Country(ip)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if record.Country.IsoCode != "DE" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized/geoip"})
+		}
+		//fmt.Printf("ISO country code: %v\n", record.Country.IsoCode)
+		// Output:
+		// Portuguese (BR) city name: Londres
+		// English subdivision name: England
+		// Russian country name: Великобритания
+		// ISO country code: GB
+		// Time zone: Europe/London
+		// Coordinates: 51.5142, -0.0931
+
 	}
 }
