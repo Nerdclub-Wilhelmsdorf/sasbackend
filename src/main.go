@@ -98,14 +98,5 @@ func Geoblock() gin.HandlerFunc {
 		if record.Country.IsoCode != "DE" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized/geoip"})
 		}
-		//fmt.Printf("ISO country code: %v\n", record.Country.IsoCode)
-		// Output:
-		// Portuguese (BR) city name: Londres
-		// English subdivision name: England
-		// Russian country name: Великобритания
-		// ISO country code: GB
-		// Time zone: Europe/London
-		// Coordinates: 51.5142, -0.0931
-
 	}
 }
