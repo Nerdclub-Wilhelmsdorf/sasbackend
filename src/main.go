@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const geoblock = true
+const geoblock = false
 
 const taxRate = 0.1
 const taxFactor = 1.1
