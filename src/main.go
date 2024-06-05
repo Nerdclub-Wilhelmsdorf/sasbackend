@@ -24,7 +24,6 @@ const DATABASE_PASSWORD = "IE76qzUk0t78JGhTz"
 func main() {
 	r := gin.Default()
 	r.Use(CORSMiddleware())
-	r.Use(gin.Recovery())
 	file, fileErr := os.Create("log")
 	if fileErr != nil {
 		return
